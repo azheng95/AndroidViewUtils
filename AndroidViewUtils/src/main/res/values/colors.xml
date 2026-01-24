@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+
+    <color name="CircleLoadingViewBgCircleColor">#FBE7D2</color>
+    <color name="CircleLoadingViewProgressColor">#A47414</color>
+
+
+</resources>

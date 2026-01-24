@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 自定义颜色Switch的属性 -->
+    <declare-styleable name="Switch">
+        <!-- 开关开启时的轨道背景色 -->
+        <attr name="switchOnTrackColor" format="color" />
+        <!-- 开关关闭时的轨道背景色 -->
+        <attr name="switchOffTrackColor" format="color" />
+        <!-- 滑块（thumb）的颜色 -->
+        <attr name="switchThumbColor" format="color" />
+        <!-- 滑块的大小（可选，适配UI尺寸） -->
+        <attr name="switchThumbSize" format="dimension" />
+    </declare-styleable>
+    <!--圆形加载视图-->
+    <declare-styleable name="CircleLoadingView">
+        <!-- 环形宽度 -->
+        <attr name="circleStrokeWidth" format="dimension" />
+        <!-- 进度环颜色 -->
+        <attr name="progressColor" format="color" />
+        <!-- 背景环颜色 -->
+        <attr name="bgCircleColor" format="color" />
+        <!-- 动画总时长（毫秒） -->
+        <attr name="animationDuration" format="integer" />
+        <!-- 目标进度（0-100） -->
+        <attr name="targetProgress" format="float" />
+        <!-- 背景环起始角度，默认270°（12点钟） -->
+        <attr name="bgStartAngle" format="float" />
+        <!-- 背景环扫描角度，默认360°（整圆） -->
+        <attr name="bgSweepAngle" format="float" />
+        <!-- 进度环起始角度，默认270° -->
+        <attr name="progressStartAngle" format="float" />
+        <!-- 进度环总扫描角度，默认-360°（顺时针） -->
+        <attr name="progressSweepAngle" format="float" />
+    </declare-styleable>
+    <!--弧形进度条-->
+    <declare-styleable name="ArcProgressBar">
+        <!-- 圆弧底色 -->
+        <attr name="arc_bg_color" format="color" />
+        <!-- 进度填充色（纯色时使用） -->
+        <attr name="arc_progress_color" format="color" />
+        <!-- 进度值 -->
+        <attr name="arc_progress" format="float" />
+        <!-- 最大进度值 -->
+        <attr name="arc_max_progress" format="float" />
+        <!-- 圆弧宽度 -->
+        <attr name="arc_stroke_width" format="dimension" />
+        <!-- 圆弧起始角度（默认135度，对应左上方向） -->
+        <attr name="arc_start_angle" format="integer" />
+        <!-- 圆弧总扫过角度（默认270度，对应大半圆） -->
+        <attr name="arc_sweep_angle" format="integer" />
+    </declare-styleable>
+    <!-- 自定义虚线View的属性 -->
+    <declare-styleable name="DashedLineView">
+        <!-- 虚线本身的粗细（核心：你需要自定义的宽度） -->
+        <attr name="dashedLineWidth" format="dimension" />
+        <!-- 虚线段的长度 -->
+        <attr name="dashedLineDashWidth" format="dimension" />
+        <!-- 虚线段之间的间隔 -->
+        <attr name="dashedLineDashGap" format="dimension" />
+        <!-- 虚线颜色 -->
+        <attr name="dashedLineColor" format="color" />
+        <!-- 虚线方向：horizontal/vertical -->
+        <attr name="dashedLineOrientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+    </declare-styleable>
+
+
+</resources>
