@@ -1,13 +1,13 @@
 package com.azheng.androidviewutils.demo
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
+import com.azheng.androidviewutils.demo.edge.BaseEdgeActivity
 import com.azheng.viewutils.imageviewer.ImageViewer
 import dev.androidbroadcast.vbpd.viewBinding
 
 
-class MainActivity : AppCompatActivity() {
+class MainEdgeActivity : BaseEdgeActivity() {
 
     private val viewBinding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
     private val TAG = "MainActivity"

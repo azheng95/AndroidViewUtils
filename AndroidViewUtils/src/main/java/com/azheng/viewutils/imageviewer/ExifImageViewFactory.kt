@@ -9,6 +9,7 @@ internal class ExifImageViewFactory : ImageViewFactory() {
         return SubsamplingScaleImageView(context).apply {
             orientation = SubsamplingScaleImageView.ORIENTATION_USE_EXIF
             setMinimumScaleType(SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE)
+            maxScale = 10f
         }
     }
 }
