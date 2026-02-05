@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import java.lang.ref.WeakReference
+import androidx.core.content.withStyledAttributes
 
 /**
  * 圆形加载视图
@@ -129,50 +130,47 @@ class CircleLoadingView @JvmOverloads constructor(
     init {
         // 解析XML中定义的自定义属性
         attrs?.let {
-            val typedArray = context.obtainStyledAttributes(it, R.styleable.CircleLoadingView)
+            context.withStyledAttributes(it, R.styleable.CircleLoadingView) {
+                // 解析原有属性（线条宽度、颜色、动画时长、目标进度）
+                circleStrokeWidth = getDimensionPixelSize(
+                    R.styleable.CircleLoadingView_CircleLoadingViewCircleStrokeWidth,
+                    dp2px(8f)  // 默认8dp
+                )
+                progressColor = getColor(
+                    R.styleable.CircleLoadingView_CircleLoadingViewProgressColor,
+                    progressColor
+                )
+                bgCircleColor = getColor(
+                    R.styleable.CircleLoadingView_CircleLoadingViewBgCircleColor,
+                    bgCircleColor
+                )
+                animationDuration = getInt(
+                    R.styleable.CircleLoadingView_CircleLoadingViewAnimationDuration,
+                    2000  // 默认2秒
+                ).toLong()
+                targetProgress = getFloat(
+                    R.styleable.CircleLoadingView_CircleLoadingViewTargetProgress,
+                    80f  // 默认80%
+                ).coerceIn(0f, 100f)  // 限制范围在0-100
 
-            // 解析原有属性（线条宽度、颜色、动画时长、目标进度）
-            circleStrokeWidth = typedArray.getDimensionPixelSize(
-                R.styleable.CircleLoadingView_circleStrokeWidth,
-                dp2px(8f)  // 默认8dp
-            )
-            progressColor = typedArray.getColor(
-                R.styleable.CircleLoadingView_progressColor,
-                progressColor
-            )
-            bgCircleColor = typedArray.getColor(
-                R.styleable.CircleLoadingView_bgCircleColor,
-                bgCircleColor
-            )
-            animationDuration = typedArray.getInt(
-                R.styleable.CircleLoadingView_animationDuration,
-                2000  // 默认2秒
-            ).toLong()
-            targetProgress = typedArray.getFloat(
-                R.styleable.CircleLoadingView_targetProgress,
-                80f  // 默认80%
-            ).coerceIn(0f, 100f)  // 限制范围在0-100
-
-            // 解析新增角度属性（带默认值，保证向后兼容）
-            bgStartAngle = typedArray.getFloat(
-                R.styleable.CircleLoadingView_bgStartAngle,
-                270f  // 默认12点钟方向
-            )
-            bgSweepAngle = typedArray.getFloat(
-                R.styleable.CircleLoadingView_bgSweepAngle,
-                360f  // 默认完整圆环
-            )
-            progressStartAngle = typedArray.getFloat(
-                R.styleable.CircleLoadingView_progressStartAngle,
-                270f
-            )
-            progressSweepAngle = typedArray.getFloat(
-                R.styleable.CircleLoadingView_progressSweepAngle,
-                -360f  // 默认逆时针（视觉顺时针）
-            )
-
-            // 回收TypedArray，避免内存泄漏
-            typedArray.recycle()
+                // 解析新增角度属性（带默认值，保证向后兼容）
+                bgStartAngle = getFloat(
+                    R.styleable.CircleLoadingView_CircleLoadingViewBgStartAngle,
+                    270f  // 默认12点钟方向
+                )
+                bgSweepAngle = getFloat(
+                    R.styleable.CircleLoadingView_CircleLoadingViewBgSweepAngle,
+                    360f  // 默认完整圆环
+                )
+                progressStartAngle = getFloat(
+                    R.styleable.CircleLoadingView_CircleLoadingViewProgressStartAngle,
+                    270f
+                )
+                progressSweepAngle = getFloat(
+                    R.styleable.CircleLoadingView_CircleLoadingViewProgressSweepAngle,
+                    -360f  // 默认逆时针（视觉顺时针）
+                )
+            }
         }
 
         // 同步临时参数为初始值

@@ -1,4 +1,4 @@
-package com.azheng.utils
+package com.azheng.androidviewutils
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

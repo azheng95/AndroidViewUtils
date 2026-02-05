@@ -15,24 +15,25 @@
     <!--圆形加载视图-->
     <declare-styleable name="CircleLoadingView">
         <!-- 环形宽度 -->
-        <attr name="circleStrokeWidth" format="dimension" />
+        <attr name="CircleLoadingViewCircleStrokeWidth" format="dimension" />
         <!-- 进度环颜色 -->
-        <attr name="progressColor" format="color" />
+        <attr name="CircleLoadingViewProgressColor" format="color" />
         <!-- 背景环颜色 -->
-        <attr name="bgCircleColor" format="color" />
+        <attr name="CircleLoadingViewBgCircleColor" format="color" />
         <!-- 动画总时长（毫秒） -->
-        <attr name="animationDuration" format="integer" />
+        <attr name="CircleLoadingViewAnimationDuration" format="integer" />
         <!-- 目标进度（0-100） -->
-        <attr name="targetProgress" format="float" />
+        <attr name="CircleLoadingViewTargetProgress" format="float" />
         <!-- 背景环起始角度，默认270°（12点钟） -->
-        <attr name="bgStartAngle" format="float" />
+        <attr name="CircleLoadingViewBgStartAngle" format="float" />
         <!-- 背景环扫描角度，默认360°（整圆） -->
-        <attr name="bgSweepAngle" format="float" />
+        <attr name="CircleLoadingViewBgSweepAngle" format="float" />
         <!-- 进度环起始角度，默认270° -->
-        <attr name="progressStartAngle" format="float" />
+        <attr name="CircleLoadingViewProgressStartAngle" format="float" />
         <!-- 进度环总扫描角度，默认-360°（顺时针） -->
-        <attr name="progressSweepAngle" format="float" />
+        <attr name="CircleLoadingViewProgressSweepAngle" format="float" />
     </declare-styleable>
+
     <!--弧形进度条-->
     <declare-styleable name="ArcProgressBar">
         <!-- 圆弧底色 -->
@@ -50,6 +51,7 @@
         <!-- 圆弧总扫过角度（默认270度，对应大半圆） -->
         <attr name="arc_sweep_angle" format="integer" />
     </declare-styleable>
+
     <!-- 自定义虚线View的属性 -->
     <declare-styleable name="DashedLineView">
         <!-- 虚线本身的粗细（核心：你需要自定义的宽度） -->
@@ -67,5 +69,56 @@
         </attr>
     </declare-styleable>
 
+    <declare-styleable name="DiamondProgressBar">
+        <!-- 基础属性 -->
+        <attr name="dpb_progress" format="float" />
+        <attr name="dpb_maxProgress" format="float" />
+        <attr name="dpb_barHeight" format="dimension" />
+        <attr name="dpb_trackColor" format="color" />
+
+        <!-- 弧形属性 -->
+        <attr name="dpb_arcMode" format="boolean" />
+        <attr name="dpb_arcHeight" format="dimension" />
+        <attr name="dpb_arcControlPosition" format="float" />
+        <attr name="dpb_arcType" format="enum">
+            <!--二次贝塞尔曲线，单控制点，简单弧形-->
+            <enum name="quadratic" value="0" />
+            <!--三次贝塞尔曲线，双控制点，更平滑自然-->
+            <enum name="cubic" value="1" />
+            <!--真正的圆弧，数学意义上的弧线-->
+            <enum name="arc" value="2" />
+        </attr>
+        <attr name="dpb_arcControlHeight1" format="float" />
+        <attr name="dpb_arcControlHeight2" format="float" />
+        <attr name="dpb_diamondRotate" format="boolean" />
+
+        <!-- 圆角属性 -->
+        <attr name="dpb_cornerRadius" format="dimension" />
+        <attr name="dpb_topLeftRadius" format="dimension" />
+        <attr name="dpb_topRightRadius" format="dimension" />
+        <attr name="dpb_bottomLeftRadius" format="dimension" />
+        <attr name="dpb_bottomRightRadius" format="dimension" />
+        <attr name="dpb_progressStartRadius" format="dimension" />
+        <attr name="dpb_progressEndRadius" format="dimension" />
+        <!--是否为胶囊形状（圆角=高度/2）-->
+        <attr name="dpb_capsuleShape" format="boolean" />
+
+        <!-- 渐变色属性 -->
+        <attr name="dpb_gradientStartColor" format="color" />
+        <attr name="dpb_gradientCenterColor" format="color" />
+        <attr name="dpb_gradientEndColor" format="color" />
+
+        <!-- 钻石图标属性 -->
+        <attr name="dpb_diamondDrawable" format="reference" />
+        <attr name="dpb_diamondSize" format="dimension" />
+        <attr name="dpb_diamondOffsetY" format="dimension" />
+        <!--线条端点样式-->
+        <attr name="dpb_strokeCap" format="enum">
+            <enum name="butt" value="0" />
+            <enum name="round" value="1" />
+            <enum name="square" value="2" />
+        </attr>
+
+    </declare-styleable>
 
 </resources>

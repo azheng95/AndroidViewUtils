@@ -1,4 +1,4 @@
-package com.azheng.utils
+package com.azheng.androidviewutils
 
 import org.junit.Test
 

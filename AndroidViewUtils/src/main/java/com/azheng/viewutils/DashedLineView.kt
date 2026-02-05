@@ -94,7 +94,8 @@ class DashedLineView @JvmOverloads constructor(
     init {
         setLayerType(LAYER_TYPE_SOFTWARE, null)
 
-        context.obtainStyledAttributes(attrs, R.styleable.DashedLineView).use { ta ->
+        val ta = context.obtainStyledAttributes(attrs, R.styleable.DashedLineView)
+        try {
             lineWidth = ta.getDimension(R.styleable.DashedLineView_dashedLineWidth, dp2px(DEFAULT_LINE_WIDTH_DP))
                 .coerceAtLeast(0.5f)
             dashWidth = ta.getDimension(R.styleable.DashedLineView_dashedLineDashWidth, dp2px(DEFAULT_DASH_WIDTH_DP))
@@ -103,8 +104,9 @@ class DashedLineView @JvmOverloads constructor(
                 .coerceAtLeast(0f)
             lineColor = ta.getColor(R.styleable.DashedLineView_dashedLineColor, Color.parseColor(DEFAULT_LINE_COLOR))
             orientation = Orientation.fromValue(ta.getInt(R.styleable.DashedLineView_dashedLineOrientation, HORIZONTAL))
+        } finally {
+            ta.recycle()
         }
-
         // 初始化临时参数（新增）
         resetPendingParams()
         applyPaintSettings()

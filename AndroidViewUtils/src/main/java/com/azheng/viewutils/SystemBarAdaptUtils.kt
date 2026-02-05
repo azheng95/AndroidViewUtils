@@ -1,98 +1,168 @@
 package com.azheng.viewutils
 
-import android.R
 import android.app.Activity
 import android.content.Context
+import android.graphics.Point
 import android.os.Build
-import android.view.Display
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.graphics.Point
-import android.view.ViewGroup.MarginLayoutParams
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import java.lang.reflect.Method
 
 /**
  * 系统栏（底部导航栏/状态栏）适配工具类
- * 兼容Android 16（API 16）及以上版本
+ * 兼容 Android 8 (API 26) ~ Android 16 (API 36)
  * 核心功能：解决布局与底部导航栏重叠问题
  */
 object SystemBarAdaptUtils {
-    // 用于标记View是否已适配，避免重复Padding叠加
+
     private const val TAG_ADAPTED = "tag_navigation_bar_adapted"
-    /**
-     * 新增核心方法：只适配底部导航栏（不处理顶部状态栏）
-     * 解决布局顶到顶部的问题，仅添加底部导航栏的padding
-     * 适配XPopup BottomPopupView 在addInnerContent()方法内调用
-     * @param targetView 需要适配的目标View
-     */
-    fun adaptOnlyBottomNavigationBar(targetView: View) {
-        ViewCompat.setOnApplyWindowInsetsListener(targetView) { v, insets ->
-            // 获取底部系统窗口内边距（如导航栏高度）
-            val bottomInset = insets.systemWindowInsetBottom
-            // 将LayoutParams强制转换为MarginLayoutParams（与原Java逻辑一致）
-            val layoutParams = v.layoutParams as MarginLayoutParams
-            // 设置View的margin（注意：原Java代码中误用了v.getRight()，正确应为v.getPaddingRight()，已修正）
-            layoutParams.setMargins(
-                v.paddingLeft,
-                v.paddingTop,
-                v.paddingRight, // 原Java代码是v.getRight()，这是错误的，已修正
-                v.paddingBottom + bottomInset
-            )
-            // 返回Insets（符合接口要求）
-            insets
-        }
-    }
+    private const val TAG_ORIGINAL_PADDING_BOTTOM = "tag_original_padding_bottom"
+    private const val TAG_ORIGINAL_PADDING_LEFT = "tag_original_padding_left"
+    private const val TAG_ORIGINAL_PADDING_RIGHT = "tag_original_padding_right"
 
     /**
-     * 核心方法：适配单个View/ViewGroup（兼容API 16+）
-     * 适配XPopup BottomPopupView
-     * @param targetView 需要适配的目标View（如Activity根布局、Fragment根布局、自定义FrameLayout等）
+     * 【推荐】适配底部导航栏（支持横屏侧边导航栏）
+     * 使用 WindowInsets 监听器，自动响应导航栏显示/隐藏变化
+     *
+     * @param targetView 需要适配的目标View
+     * @param consumeInsets 是否消费 insets，防止子 View 重复处理（默认 false）
      */
-    fun adaptNavigationBar(targetView: View) {
-        // 避免重复适配
+    fun adaptNavigationBar(targetView: View, consumeInsets: Boolean = false) {
         if (targetView.getTag(TAG_ADAPTED.hashCode()) as? Boolean == true) return
 
-        val context = targetView.context
-        // 1. 兼容API 16设置fitsSystemWindows（让系统自动避开系统栏）
-        targetView.fitsSystemWindows = true
+        // 保存原始 padding
+        saveOriginalPadding(targetView)
 
-        // 2. 手动计算底部导航栏高度，添加Padding兜底（防止fitsSystemWindows失效）
-        val navHeight = getNavigationBarHeight(context)
-        if (navHeight > 0) {
-            // 保留原有Padding，仅叠加导航栏高度的底部Padding
-            targetView.setPadding(
-                targetView.paddingLeft,
-                targetView.paddingTop,
-                targetView.paddingRight,
-                targetView.paddingBottom + navHeight
+        ViewCompat.setOnApplyWindowInsetsListener(targetView) { v, insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val originalBottom = v.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) as? Int ?: 0
+            val originalLeft = v.getTag(TAG_ORIGINAL_PADDING_LEFT.hashCode()) as? Int ?: 0
+            val originalRight = v.getTag(TAG_ORIGINAL_PADDING_RIGHT.hashCode()) as? Int ?: 0
+
+            v.setPadding(
+                originalLeft + navInsets.left,    // 侧边导航栏（横屏左侧）
+                v.paddingTop,                      // 顶部不处理
+                originalRight + navInsets.right,  // 侧边导航栏（横屏右侧）
+                originalBottom + navInsets.bottom // 底部导航栏
             )
+
+            if (consumeInsets) {
+                // 消费导航栏 insets
+                WindowInsetsCompat.Builder(insets)
+                    .setInsets(WindowInsetsCompat.Type.navigationBars(), Insets.NONE)
+                    .build()
+            } else {
+                insets
+            }
         }
 
-        // 标记为已适配
+        requestInsetsWhenReady(targetView)
         targetView.setTag(TAG_ADAPTED.hashCode(), true)
     }
 
     /**
-     * 适配Activity的根布局（一键调用，兼容API 16+）
-     * @param activity 目标Activity
+     * 只适配底部导航栏（不处理侧边）
+     * 适用于只需要底部适配的场景
+     *
+     * @param targetView 需要适配的目标View
      */
-    fun adaptActivityRootView(activity: Activity) {
-        // 安全获取Activity根布局（强转为ViewGroup，避免getChildAt调用问题）
-        val contentContainer = activity.window.decorView.findViewById<ViewGroup>(R.id.content)
-        val rootView = if (contentContainer.childCount > 0) {
-            contentContainer.getChildAt(0)
-        } else {
-            contentContainer
+    fun adaptBottomNavigationBar(targetView: View) {
+        if (targetView.getTag(TAG_ADAPTED.hashCode()) as? Boolean == true) return
+
+        targetView.setTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode(), targetView.paddingBottom)
+
+        ViewCompat.setOnApplyWindowInsetsListener(targetView) { v, insets ->
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val originalPadding = v.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) as? Int ?: 0
+
+            v.setPadding(
+                v.paddingLeft,
+                v.paddingTop,
+                v.paddingRight,
+                originalPadding + navBarHeight
+            )
+            insets
         }
-        rootView?.let { adaptNavigationBar(it) }
+
+        requestInsetsWhenReady(targetView)
+        targetView.setTag(TAG_ADAPTED.hashCode(), true)
     }
 
     /**
-     * 适配Fragment的根布局（一键调用，兼容API 16+）
-     * @param fragment 目标Fragment
+     * 使用 Margin 方式适配底部导航栏
+     * 适用于需要保持 View 原有 padding 的场景
+     *
+     * @param targetView 需要适配的目标View（需要有 MarginLayoutParams）
+     */
+    fun adaptNavigationBarWithMargin(targetView: View) {
+        ViewCompat.setOnApplyWindowInsetsListener(targetView) { v, insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val layoutParams = v.layoutParams as? ViewGroup.MarginLayoutParams ?: return@setOnApplyWindowInsetsListener insets
+
+            layoutParams.bottomMargin = navInsets.bottom
+            layoutParams.leftMargin = navInsets.left
+            layoutParams.rightMargin = navInsets.right
+            v.layoutParams = layoutParams
+
+            insets
+        }
+
+        requestInsetsWhenReady(targetView)
+    }
+
+    /**
+     * 适配 Activity 的根布局
+     *
+     * @param activity 目标 Activity
+     * @param includeStatusBar 是否同时适配状态栏（默认 false）
+     */
+    fun adaptActivityRootView(activity: Activity, includeStatusBar: Boolean = false) {
+        val rootView = getActivityRootView(activity) ?: return
+
+        if (includeStatusBar) {
+            adaptAllSystemBars(rootView)
+        } else {
+            adaptNavigationBar(rootView)
+        }
+    }
+
+    /**
+     * 仅适配 Activity 底部导航栏（推荐：与沉浸式状态栏配合使用）
+     *
+     * @param activity 目标 Activity
+     */
+    fun adaptActivityBottomOnly(activity: Activity) {
+        val rootView = getActivityRootView(activity) ?: return
+
+        if (rootView.getTag(TAG_ADAPTED.hashCode()) as? Boolean == true) return
+
+        rootView.setTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode(), rootView.paddingBottom)
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            val originalPadding = v.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) as? Int ?: 0
+
+            v.setPadding(
+                v.paddingLeft,
+                0,  // 顶部交给状态栏工具处理
+                v.paddingRight,
+                originalPadding + navBarHeight
+            )
+            insets
+        }
+
+        requestInsetsWhenReady(rootView)
+        rootView.setTag(TAG_ADAPTED.hashCode(), true)
+    }
+
+    /**
+     * 适配 Fragment 的根布局
+     *
+     * @param fragment 目标 Fragment
      */
     fun adaptFragmentRootView(fragment: Fragment) {
         val rootView = fragment.view ?: return
@@ -100,67 +170,236 @@ object SystemBarAdaptUtils {
     }
 
     /**
-     * 重置View的适配状态（如需动态重新适配时调用）
-     * @param targetView 需要重置的View
+     * 同时适配状态栏和导航栏
+     *
+     * @param targetView 需要适配的目标 View
+     */
+    fun adaptAllSystemBars(targetView: View) {
+        if (targetView.getTag(TAG_ADAPTED.hashCode()) as? Boolean == true) return
+
+        saveOriginalPadding(targetView)
+        val originalTop = targetView.paddingTop
+
+        ViewCompat.setOnApplyWindowInsetsListener(targetView) { v, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            val originalBottom = v.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) as? Int ?: 0
+            val originalLeft = v.getTag(TAG_ORIGINAL_PADDING_LEFT.hashCode()) as? Int ?: 0
+            val originalRight = v.getTag(TAG_ORIGINAL_PADDING_RIGHT.hashCode()) as? Int ?: 0
+
+            v.setPadding(
+                originalLeft + systemBars.left,
+                originalTop + systemBars.top,
+                originalRight + systemBars.right,
+                originalBottom + systemBars.bottom
+            )
+            insets
+        }
+
+        requestInsetsWhenReady(targetView)
+        targetView.setTag(TAG_ADAPTED.hashCode(), true)
+    }
+
+    /**
+     * 重置 View 的适配状态（恢复原始 padding）
+     *
+     * @param targetView 需要重置的 View
      */
     fun resetAdaptState(targetView: View) {
-        targetView.setTag(TAG_ADAPTED.hashCode(), false)
-        // 可选：重置底部Padding（根据需求决定是否恢复原Padding）
-        // targetView.setPadding(
-        //     targetView.paddingLeft,
-        //     targetView.paddingTop,
-        //     targetView.paddingRight,
-        //     targetView.paddingBottom - getNavigationBarHeight(targetView.context)
-        // )
-    }
+        // 移除监听器
+        ViewCompat.setOnApplyWindowInsetsListener(targetView, null)
 
-    /**
-     * 获取底部导航栏高度（兼容API 16+）
-     * @param context 上下文
-     * @return 导航栏高度（px），无导航栏则返回0
-     */
-    fun getNavigationBarHeight(context: Context): Int {
-        var navHeight = 0
-        val resources = context.resources
-        // 获取Android系统内置的导航栏高度资源ID
-        val navBarHeightId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        // 恢复原始 padding
+        val originalBottom = targetView.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) as? Int
+        val originalLeft = targetView.getTag(TAG_ORIGINAL_PADDING_LEFT.hashCode()) as? Int
+        val originalRight = targetView.getTag(TAG_ORIGINAL_PADDING_RIGHT.hashCode()) as? Int
 
-        if (navBarHeightId > 0 && isNavigationBarVisible(context)) {
-            // 只有导航栏存在且可见时才返回高度
-            navHeight = resources.getDimensionPixelSize(navBarHeightId)
+        if (originalBottom != null || originalLeft != null || originalRight != null) {
+            targetView.setPadding(
+                originalLeft ?: targetView.paddingLeft,
+                targetView.paddingTop,
+                originalRight ?: targetView.paddingRight,
+                originalBottom ?: targetView.paddingBottom
+            )
         }
-        return navHeight
+
+        // 清除标记
+        targetView.setTag(TAG_ADAPTED.hashCode(), false)
+        targetView.setTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode(), null)
+        targetView.setTag(TAG_ORIGINAL_PADDING_LEFT.hashCode(), null)
+        targetView.setTag(TAG_ORIGINAL_PADDING_RIGHT.hashCode(), null)
     }
 
     /**
-     * 判断设备是否显示底部导航栏（兼容API 16+）
-     * @param context 上下文
-     * @return true=有底部导航栏，false=无
+     * 同步获取导航栏高度（View 必须已 attach 到 Window）
+     *
+     * @param targetView 目标 View
+     * @return 导航栏高度（px），获取失败返回 0
      */
-    private fun isNavigationBarVisible(context: Context): Boolean {
-        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val display = windowManager.defaultDisplay
-        val normalSize = Point()
-        val realSize = Point()
+    fun getNavigationBarHeight(targetView: View): Int {
+        return ViewCompat.getRootWindowInsets(targetView)
+            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+            ?.bottom ?: 0
+    }
 
-        // 获取不含导航栏的显示尺寸
-        display.getSize(normalSize)
+    /**
+     * 同步获取导航栏 Insets（包含四边）
+     *
+     * @param targetView 目标 View
+     * @return Insets 对象，获取失败返回 Insets.NONE
+     */
+    fun getNavigationBarInsets(targetView: View): Insets {
+        return ViewCompat.getRootWindowInsets(targetView)
+            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+            ?: Insets.NONE
+    }
 
-        // 获取含导航栏的真实尺寸（兼容API 16）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            display.getRealSize(realSize)
+    /**
+     * 从 Context 获取导航栏高度（兜底方案，不依赖 View）
+     *
+     * @param context 上下文
+     * @return 导航栏高度（px），无导航栏返回 0
+     */
+    fun getNavigationBarHeightFromContext(context: Context): Int {
+        // 先检查是否有导航栏
+        if (!hasNavigationBarByScreenSize(context)) {
+            return 0
+        }
+
+        val resources = context.resources
+        val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
         } else {
-            try {
-                // API 16反射调用getRealSize方法（低版本兜底）
-                val method: Method = Display::class.java.getMethod("getRealSize", Point::class.java)
-                method.invoke(display, realSize)
-            } catch (e: Exception) {
-                // 反射失败则默认无导航栏
-                realSize.set(normalSize.x, normalSize.y)
+            0
+        }
+    }
+
+    /**
+     * 判断导航栏是否可见
+     *
+     * @param targetView 目标 View（必须已 attach）
+     * @return true = 导航栏可见
+     */
+    fun isNavigationBarVisible(targetView: View): Boolean {
+        val insets = ViewCompat.getRootWindowInsets(targetView) ?: return false
+        val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+        return navInsets.bottom > 0 || navInsets.left > 0 || navInsets.right > 0
+    }
+
+    /**
+     * 判断设备是否存在虚拟导航栏（综合判断）
+     *
+     * @param targetView 目标 View
+     * @return true = 存在虚拟导航栏
+     */
+    fun hasVirtualNavigationBar(targetView: View): Boolean {
+        // 优先使用 WindowInsets API（更准确）
+        ViewCompat.getRootWindowInsets(targetView)?.let { insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            if (navInsets.bottom > 0 || navInsets.left > 0 || navInsets.right > 0) {
+                return true
             }
         }
 
-        // 真实高度 > 普通高度 → 存在底部导航栏
-        return realSize.y > normalSize.y || realSize.x > normalSize.x
+        // 兜底：屏幕尺寸对比法
+        return hasNavigationBarByScreenSize(targetView.context)
+    }
+
+    /**
+     * 异步获取导航栏高度（适用于 View 未 attach 的情况）
+     *
+     * @param targetView 目标 View
+     * @param callback 回调，返回导航栏高度
+     */
+    fun getNavigationBarHeightAsync(targetView: View, callback: (Int) -> Unit) {
+        if (targetView.isAttachedToWindow) {
+            callback(getNavigationBarHeight(targetView))
+            return
+        }
+
+        targetView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                v.post {
+                    callback(getNavigationBarHeight(v))
+                }
+                v.removeOnAttachStateChangeListener(this)
+            }
+
+            override fun onViewDetachedFromWindow(v: View) {
+                v.removeOnAttachStateChangeListener(this)
+            }
+        })
+    }
+
+    // ==================== 私有方法 ====================
+
+    /**
+     * 保存原始 padding
+     */
+    private fun saveOriginalPadding(view: View) {
+        if (view.getTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode()) == null) {
+            view.setTag(TAG_ORIGINAL_PADDING_BOTTOM.hashCode(), view.paddingBottom)
+            view.setTag(TAG_ORIGINAL_PADDING_LEFT.hashCode(), view.paddingLeft)
+            view.setTag(TAG_ORIGINAL_PADDING_RIGHT.hashCode(), view.paddingRight)
+        }
+    }
+
+    /**
+     * 在 View ready 时请求 insets
+     */
+    private fun requestInsetsWhenReady(targetView: View) {
+        if (targetView.isAttachedToWindow) {
+            ViewCompat.requestApplyInsets(targetView)
+        } else {
+            targetView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    ViewCompat.requestApplyInsets(v)
+                    v.removeOnAttachStateChangeListener(this)
+                }
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    v.removeOnAttachStateChangeListener(this)
+                }
+            })
+        }
+    }
+
+    /**
+     * 获取 Activity 根布局
+     */
+    private fun getActivityRootView(activity: Activity): View? {
+        val contentContainer = activity.window.decorView
+            .findViewById<ViewGroup>(android.R.id.content)
+        return if (contentContainer.childCount > 0) {
+            contentContainer.getChildAt(0)
+        } else {
+            contentContainer
+        }
+    }
+
+    /**
+     * 通过屏幕尺寸判断是否有导航栏（兜底方案）
+     */
+    @Suppress("DEPRECATION")
+    private fun hasNavigationBarByScreenSize(context: Context): Boolean {
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+ 使用新 API
+            val windowMetrics = windowManager.currentWindowMetrics
+            val insets = windowMetrics.windowInsets
+                .getInsetsIgnoringVisibility(android.view.WindowInsets.Type.navigationBars())
+            insets.bottom > 0 || insets.left > 0 || insets.right > 0
+        } else {
+            // Android 8~10 使用 Display 尺寸对比
+            val display = windowManager.defaultDisplay
+            val normalSize = Point()
+            val realSize = Point()
+            display.getSize(normalSize)
+            display.getRealSize(realSize)
+            realSize.y > normalSize.y || realSize.x > normalSize.x
+        }
     }
 }

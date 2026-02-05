@@ -1,4 +1,4 @@
-package com.azheng.utils
+package com.azheng.androidviewutils
 
 // 嵌套对象示例
 data class UserBean(
