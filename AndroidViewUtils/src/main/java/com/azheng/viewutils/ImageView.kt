@@ -192,13 +192,6 @@ fun <T> ImageView.setImageUrlItem(
         error(if (isRound) imagePlaceholder else imagePlaceholder)
 
     }
-    // 优化点6：优化缓存策略
-    /*    Glide.with(this)
-            .load(url)
-            .thumbnail(thumbnailSize)
-            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // 智能选择缓存策略
-            .apply(requestOptions)
-            .into(this)*/
 
     if (isRound) {
         Glide.with(this)

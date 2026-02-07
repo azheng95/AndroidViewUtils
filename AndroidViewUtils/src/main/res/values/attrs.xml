@@ -112,12 +112,19 @@
         <attr name="dpb_diamondDrawable" format="reference" />
         <attr name="dpb_diamondSize" format="dimension" />
         <attr name="dpb_diamondOffsetY" format="dimension" />
+        <attr name="dpb_diamondWidth" format="dimension" />
+        <attr name="dpb_diamondHeight" format="dimension" />
         <!--线条端点样式-->
         <attr name="dpb_strokeCap" format="enum">
             <enum name="butt" value="0" />
             <enum name="round" value="1" />
             <enum name="square" value="2" />
         </attr>
+        <!-- 在 DiamondProgressBar 的 declare-styleable 中添加 -->
+        <attr name="dpb_diamondTiltEnabled" format="boolean" />
+        <attr name="dpb_diamondTiltAngle" format="float" />
+        <attr name="dpb_diamondTiltSmooth" format="boolean" />
+        <attr name="dpb_diamondTiltDuration" format="integer" />
 
     </declare-styleable>
 
