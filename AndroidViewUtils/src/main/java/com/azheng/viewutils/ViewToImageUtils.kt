@@ -101,15 +101,19 @@ object ViewToImageUtils {
                 val imageView = childView
                 // 获取注册的加载参数
                 val param = imageViewUrlMap[imageView] ?: return@traverseViewSuspend
-                // 同步加载图片为Bitmap（挂起函数，现在可以正常调用）
-                val bitmap = imageView.loadImageToBitmapSync(
+                // 同步加载图片为Bitmap（使用新的配置类方式）
+                val bitmap = loadImageToBitmap(
                     context = context,
                     url = param.url,
-                    isRound = param.isRound,
-                    radius = param.radius,
-                    blurRadius = param.blurRadius,
-                    sampling = param.sampling
+                    config = ImageLoadConfig(
+                        isRound = param.isRound,
+                        radius = param.radius?.toInt() ?: 0,
+                        blurRadius = param.blurRadius ?: 0,
+                        sampling = param.sampling ?: 1,
+                        showPlaceholder = true
+                    )
                 )
+
                 // 手动设置Bitmap到ImageView（切回主线程）
                 bitmap?.let {
                     withContext(Dispatchers.Main) {
@@ -119,6 +123,7 @@ object ViewToImageUtils {
             }
         }
     }
+
 
 
     /**
