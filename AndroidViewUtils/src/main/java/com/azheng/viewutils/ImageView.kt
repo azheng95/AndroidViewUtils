@@ -17,112 +17,67 @@ import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.RoundedCornersTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ExecutionException
 
 private const val TAG = "ViewImage"
 
+/**
+ * 图片加载配置类
+ */
+data class ImageLoadConfig(
+    val isRound: Boolean = false,
+    val radius: Int = 0,
+    val blurRadius: Int = 0,
+    val sampling: Int = 1,
+    val showPlaceholder: Boolean = false,
+    val placeholderRes: Int = ViewConstantUtils.imagePlaceholder,
+    val cacheStrategy: DiskCacheStrategy = DiskCacheStrategy.ALL,
+    val thumbnailSize: Float = 0f,
+    val applyCenterCrop: Boolean = true
+)
+
+// ==================== 公共 API ====================
 
 /**
- * 图片加载扩展函数优化版（解决圆角+centerCrop冲突）
- * @param url 图片地址
- * @param isRound 是否显示为圆形（与圆角参数互斥）
- * @param radius 圆角半径（单位：px，默认不生效）
- * @param blurRadius 模糊半径（单位：px，默认不生效）
- * @param sampling 模糊采样率（配合模糊半径使用）
- * @param isPlaceholder 是否显示占位图
+ * 通用图片加载扩展函数
+ */
+fun <T> ImageView.loadImage(url: T?, config: ImageLoadConfig = ImageLoadConfig()) {
+    if (!isContextValid()) return
+
+    Glide.with(this)
+        .load(url)
+        .apply(config.toRequestOptions())
+        .apply { if (config.thumbnailSize > 0) thumbnail(config.thumbnailSize) }
+        .into(this)
+}
+
+/**
+ * 图片加载扩展函数（保持原有 API 兼容）
  */
 fun <T> ImageView.setImageUrl(
     url: T,
     isRound: Boolean = false,
-    radius: Float? = null,
+    radius: Int? = null,
     blurRadius: Int? = null,
     sampling: Int? = null,
     isPlaceholder: Boolean = false,
     imagePlaceholder: Int? = ViewConstantUtils.imagePlaceholder
 ) {
-    // 1. 校验上下文是否存活
-    if (!isContextValid()) {
-        return
-    }
-
-    // 2. 构建变换集合（核心修复：默认添加CenterCrop，保证列表非空）
-    val transformations = mutableListOf<Transformation<Bitmap>>().apply {
-        // 无论是否有其他变换，都先添加CenterCrop（替代ImageView的scaleType="centerCrop"）
-        add(CenterCrop())
-
-        // 叠加其他变换
-        when {
-            // 圆形效果（互斥优先）
-            isRound -> add(CircleCrop())
-            else -> {
-                // 圆角效果
-                radius?.takeIf { it > 0 }?.let {
-                    add(RoundedCornersTransformation(it.toInt(), 0))
-                }
-                // 模糊效果
-                blurRadius?.takeIf { it > 0 }?.let {
-                    add(
-                        if (sampling != null) BlurTransformation(
-                            it,
-                            sampling
-                        ) else BlurTransformation(it)
-                    )
-                }
-            }
-        }
-    }
-
-    // 3. 构建RequestOptions（核心修复：仅当列表非空时才应用变换）
-    val requestOptions = RequestOptions().apply {
-        // 保证列表非空时才调用MultiTransformation（双重保险）
-        if (transformations.isNotEmpty()) {
-            transform(MultiTransformation(transformations))
-        }
-        // 占位图/错误图逻辑
-        if (isPlaceholder) {
-            placeholder(imagePlaceholder!!)
-            error(imagePlaceholder)
-        }
-
-        // 缓存策略保留
-        diskCacheStrategy(DiskCacheStrategy.ALL)
-    }
-    // 4. 加载图片
-    Glide.with(this)
-        .load(url)
-        .apply(requestOptions)
-        .into(this)
+    loadImage(
+        url = url,
+        config = ImageLoadConfig(
+            isRound = isRound,
+            radius = radius ?: 0,
+            blurRadius = blurRadius ?: 0,
+            sampling = sampling ?: 1,
+            showPlaceholder = isPlaceholder,
+            placeholderRes = imagePlaceholder ?: ViewConstantUtils.imagePlaceholder,
+            cacheStrategy = DiskCacheStrategy.ALL
+        )
+    )
 }
 
 /**
- * 检查ImageView的上下文是否有效（Activity/Fragment未销毁）
- */
-private fun ImageView.isContextValid(): Boolean {
-    val context: Context = this.context ?: return false
-    return when (context) {
-        // Activity上下文：检查是否销毁或正在销毁
-        is ComponentActivity -> !context.isDestroyed && !context.isFinishing
-        // 包装类上下文：获取基础上下文再检查
-        is ContextWrapper -> {
-            val baseContext = context.baseContext
-            when (baseContext) {
-                is ComponentActivity -> !baseContext.isDestroyed && !baseContext.isFinishing
-                else -> true // 非Activity上下文，默认有效（如Application）
-            }
-        }
-
-        else -> true // 其他上下文（如Application）默认有效
-    }
-}
-
-
-/**
- * 用于本地id资源
- * @param url 图片地址
- * @param isRound 是否显示为圆形（与圆角参数互斥）
- * @param radius 圆角半径（单位：px，默认不生效）
- * @param blurRadius 模糊半径（单位：px，默认不生效）
- * 不复用
+ * 本地资源图片加载（禁用磁盘缓存）
  */
 fun <T> ImageView.setImageUrlRes(
     url: T,
@@ -131,41 +86,21 @@ fun <T> ImageView.setImageUrlRes(
     blurRadius: Int? = null,
     imagePlaceholder: Int? = ViewConstantUtils.imagePlaceholder
 ) {
-    // 1. 校验上下文是否存活
-    if (!isContextValid()) {
-        return
-    }
-    val requestOptions = RequestOptions().run {
-        placeholder(if (isRound) imagePlaceholder!! else imagePlaceholder!!)
-        error(if (isRound) imagePlaceholder else imagePlaceholder)
-    }
-    if (isRound) {
-        Glide.with(this)
-            .load(url)
-            .diskCacheStrategy(DiskCacheStrategy.NONE) // 禁用磁盘缓存
-            .apply(RequestOptions.bitmapTransform(CircleCrop()))
-            .into(this)
-    } else {
-        if ((radius ?: 0) > 0) {
-            Glide.with(this)
-                .load(url)
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // 禁用磁盘缓存
-                .transform(CenterCrop(), RoundedCorners(radius ?: 0))
-                .apply(requestOptions)
-                .into(this)
-        } else {
-            Glide.with(this)
-                .load(url)
-                .diskCacheStrategy(DiskCacheStrategy.NONE) // 禁用磁盘缓存
-                .transform(CenterCrop())
-                .apply(requestOptions)
-                .into(this)
-        }
-    }
+    loadImage(
+        url = url,
+        config = ImageLoadConfig(
+            isRound = isRound,
+            radius = radius ?: 0,
+            blurRadius = blurRadius ?: 0,
+            showPlaceholder = true,
+            placeholderRes = imagePlaceholder ?: ViewConstantUtils.imagePlaceholder,
+            cacheStrategy = DiskCacheStrategy.NONE
+        )
+    )
 }
 
 /**
- * item 中图片
+ * 列表项图片加载（带缩略图优化）
  */
 fun <T> ImageView.setImageUrlItem(
     url: T,
@@ -174,113 +109,105 @@ fun <T> ImageView.setImageUrlItem(
     blurRadius: Int? = null,
     imagePlaceholder: Int? = ViewConstantUtils.imagePlaceholder
 ) {
-    // 优化点1：增加缩略图预加载（降低首次加载时间）
-    val thumbnailSize = 0.25f // 使用10%尺寸的缩略图
-    // 优化点3：合并多个Transformation
-    val transformations = mutableListOf<Transformation<Bitmap>>()
-    radius?.takeIf { it > 0 }?.let {
-        transformations.add(RoundedCorners(radius.toInt()))
-//        transformations.add(RoundedCornersTransformation(it.toInt(), 0))
+    loadImage(
+        url = url,
+        config = ImageLoadConfig(
+            isRound = isRound,
+            radius = radius ?: 0,
+            blurRadius = blurRadius ?: 0,
+            showPlaceholder = true,
+            placeholderRes = imagePlaceholder ?: ViewConstantUtils.imagePlaceholder,
+            cacheStrategy = DiskCacheStrategy.AUTOMATIC,
+            thumbnailSize = 0.25f
+        )
+    )
+}
 
-    }
-    blurRadius?.takeIf { it > 0 }?.let {
-        transformations.add(BlurTransformation(it))
-    }
+/**
+ * 无占位图简单加载
+ */
+fun <T> ImageView.setImageUrlNoPlaceholder(url: T?) {
+    if (!isContextValid()) return
+    Glide.with(this).load(url).into(this)
+}
 
-    val requestOptions = RequestOptions().run {
-        placeholder(if (isRound) imagePlaceholder!! else imagePlaceholder!!)
-        error(if (isRound) imagePlaceholder else imagePlaceholder)
-
-    }
-
-    if (isRound) {
-        Glide.with(this)
+/**
+ * 同步加载图片为 Bitmap（协程环境使用）
+ */
+suspend fun <T> loadImageToBitmap(
+    context: Context,
+    url: T,
+    config: ImageLoadConfig = ImageLoadConfig()
+): Bitmap? = withContext(Dispatchers.IO) {
+    runCatching {
+        Glide.with(context)
+            .asBitmap()
             .load(url)
-            .thumbnail(thumbnailSize)
-            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // 智能选择缓存策略
-            .apply(RequestOptions.bitmapTransform(CircleCrop()))
-            .into(this)
-    } else {
-        if ((radius ?: 0) > 0) {
-            Glide.with(this)
-                .load(url)
-                .thumbnail(thumbnailSize)
-                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // 智能选择缓存策略
-                .transform(CenterCrop(), RoundedCorners(radius ?: 0))
-                .apply(requestOptions)
-                .into(this)
-        } else {
-            Glide.with(this)
-                .load(url)
-                .thumbnail(thumbnailSize)
-                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // 智能选择缓存策略
-                .transform(CenterCrop())
-                .apply(requestOptions)
-                .into(this)
+            .apply(config.toRequestOptions())
+            .submit()
+            .get()
+    }.getOrNull()
+}
+
+// ==================== 私有工具方法 ====================
+
+/**
+ * 将配置转换为 RequestOptions
+ */
+private fun ImageLoadConfig.toRequestOptions(): RequestOptions {
+    return RequestOptions().apply {
+        // 构建并应用变换
+        buildTransformations().takeIf { it.isNotEmpty() }?.let {
+            transform(MultiTransformation(it))
+        }
+
+        // 占位图配置
+        if (showPlaceholder) {
+            placeholder(placeholderRes)
+            error(placeholderRes)
+        }
+
+        // 缓存策略
+        diskCacheStrategy(cacheStrategy)
+    }
+}
+
+/**
+ * 构建图片变换列表
+ */
+private fun ImageLoadConfig.buildTransformations(): List<Transformation<Bitmap>> {
+    return buildList {
+        // 1. CenterCrop（基础变换）
+        if (applyCenterCrop) add(CenterCrop())
+
+        // 2. 形状变换（圆形与圆角互斥）
+        when {
+            isRound -> add(CircleCrop())
+            radius > 0 -> add(RoundedCornersTransformation(radius, 0))
+        }
+
+        // 3. 模糊变换（可叠加）
+        if (blurRadius > 0) {
+            add(BlurTransformation(blurRadius, sampling))
         }
     }
 }
 
 /**
- * 图片加载
+ * 检查 ImageView 的 Context 是否有效
  */
-fun <T> ImageView.setImageUrlNoPlaceholder(
-    url: T?,
-) {
-    Glide
-        .with(this)
-        .load(url)
-        .into(this)
+private fun ImageView.isContextValid(): Boolean {
+    val activity = context.findComponentActivity()
+    return activity == null || (!activity.isDestroyed && !activity.isFinishing)
 }
 
-// 新增：同步加载图片为Bitmap（用于未挂载的ImageView）
-suspend fun <T> ImageView.loadImageToBitmapSync(
-    context: Context,
-    url: T,
-    isRound: Boolean = false,
-    radius: Float? = null,
-    blurRadius: Int? = null,
-    sampling: Int? = null,
-    placeholderRes:Int? = ViewConstantUtils.imagePlaceholder
-): Bitmap? {
-    return withContext(Dispatchers.IO) {
-        try {
-            // 构建和原有扩展函数一致的变换规则
-            val transformations = mutableListOf<Transformation<Bitmap>>().apply {
-                add(CenterCrop())
-                when {
-                    isRound -> add(CircleCrop())
-                    else -> {
-                        radius?.takeIf { it > 0 }
-                            ?.let { add(RoundedCornersTransformation(it.toInt(), 0)) }
-                        blurRadius?.takeIf { it > 0 }?.let {
-                            add(
-                                if (sampling != null) BlurTransformation(
-                                    it,
-                                    sampling
-                                ) else BlurTransformation(it)
-                            )
-                        }
-                    }
-                }
-            }
-            val requestOptions = RequestOptions().apply {
-                if (transformations.isNotEmpty()) transform(MultiTransformation(transformations))
-                placeholder(placeholderRes!!)
-                error(placeholderRes)
-                diskCacheStrategy(DiskCacheStrategy.ALL)
-            }
-            // 同步加载图片（submit+get，在IO线程执行）
-            Glide.with(context)
-                .asBitmap()
-                .load(url)
-                .apply(requestOptions)
-                .submit()
-                .get()
-        } catch (e: ExecutionException) {
-            null
-        } catch (e: InterruptedException) {
-            null
-        }
+/**
+ * 递归查找 ComponentActivity
+ */
+private tailrec fun Context.findComponentActivity(): ComponentActivity? {
+    return when (this) {
+        is ComponentActivity -> this
+        is ContextWrapper -> baseContext.findComponentActivity()
+        else -> null
     }
 }
