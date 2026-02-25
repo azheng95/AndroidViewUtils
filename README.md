@@ -1,4 +1,6 @@
-[![](https://jitpack.io/v/azheng95/AndroidUtils.svg)](https://jitpack.io/#azheng95/AndroidUtils)
+[![](https://jitpack.io/v/azheng95/AndroidViewUtils.svg)](https://jitpack.io/#azheng95/AndroidViewUtils)
+
+
 
 在 `settings.gradle` 文件中加入
 
@@ -26,18 +28,17 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-	        implementation 'com.github.azheng95:AndroidUtils:0.0.8'
+	        implementation 'com.github.azheng95:AndroidViewUtils:0.0.1'
 }
 ```
 
-在 Application 初始化 Utils
+在 Application 初始化 
 
 ```
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // 初始化Utils
-        Utils.init(this)
+       ImageViewer.init(this)
     }
 }
 ```
@@ -45,11 +46,24 @@ class MyApplication : Application() {
 
  ```
     //https://github.com/Tencent/MMKV
-    implementation 'com.tencent:mmkv:1.3.12'
-    // Gson 解析容错：https://github.com/getActivity/GsonFactory
-    implementation 'com.github.getActivity:GsonFactory:9.6'
-    // Json 解析框架：https://github.com/google/gson
-    implementation 'com.google.code.gson:gson:2.12.1'
-    // Kotlin 反射库：用于反射 Kotlin data class 类对象，2.0.0 请修改成当前项目 Kotlin 的版本号
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.0.0'
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.bumptech.glide:ksp:4.16.0")
+    implementation("com.github.wasabeef:glide-transformations:4.3.0")
+
+    implementation("io.noties.markwon:core:4.6.2")
+    // Markwon + Glide图片加载插件（处理网络图片）
+    implementation("io.noties.markwon:image-glide:4.6.2")
+    implementation("io.noties.markwon:ext-strikethrough:4.6.2")
+    implementation("io.noties.markwon:ext-tables:4.6.2")
+    implementation("io.noties.markwon:ext-tasklist:4.6.2")
+    implementation("io.noties.markwon:ext-latex:4.6.2")
+    implementation("io.noties.markwon:html:4.6.2")
+    implementation("io.noties.markwon:image:4.6.2")
+    implementation("io.noties.markwon:linkify:4.6.2")
+    implementation("io.noties.markwon:simple-ext:4.6.2")
+    implementation("io.noties.markwon:editor:4.6.2")
+    implementation("io.noties.markwon:syntax-highlight:4.6.2")
+    implementation("com.github.piasy:BigImageViewer:1.8.1")
+    implementation("com.github.piasy:GlideImageLoader:1.8.1")
+    implementation("com.github.piasy:GlideImageViewFactory:1.8.1")
 ```
