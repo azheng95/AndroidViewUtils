@@ -2,6 +2,7 @@ package com.azheng.androidviewutils.demo
 
 import android.os.Bundle
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
+import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.imageviewer.ImageViewer
 import dev.androidbroadcast.vbpd.viewBinding
 

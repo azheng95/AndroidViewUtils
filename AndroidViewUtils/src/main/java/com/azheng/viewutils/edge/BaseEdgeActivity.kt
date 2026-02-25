@@ -38,7 +38,7 @@ abstract class BaseEdgeActivity : AppCompatActivity() {
     // ==================== 生命周期 ====================
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // ✅ 使用工具类配置 Window（透明、颜色等）
+        //  使用工具类配置 Window（透明、颜色等）
         if (isEdgeToEdgeEnabled()) {
             EdgeToEdgeHelper.applyWindow(this, getEdgeToEdgeConfig())
         }
@@ -67,7 +67,7 @@ abstract class BaseEdgeActivity : AppCompatActivity() {
         if (!isEdgeToEdgeEnabled() || isInsetsConfigured) return
         isInsetsConfigured = true
 
-        // ✅ 使用工具类配置 Insets
+        //  使用工具类配置 Insets
         val targetView = getEdgeToEdgeContentView() ?: findViewById(android.R.id.content)
         EdgeToEdgeHelper.applyInsets(targetView, getEdgeToEdgeConfig())
     }
