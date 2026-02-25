@@ -3,6 +3,7 @@ package com.azheng.androidviewutils.demo.edge
 import android.os.Bundle
 import androidx.recyclerview.widget.RecyclerView
 import com.azheng.androidviewutils.demo.R
+import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.edge.applyNavigationBarPadding
 
 /**

@@ -2,6 +2,7 @@ package com.azheng.androidviewutils.demo.edge
 
 import android.os.Bundle
 import com.azheng.androidviewutils.demo.R
+import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.edge.applyNavigationBarPadding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 

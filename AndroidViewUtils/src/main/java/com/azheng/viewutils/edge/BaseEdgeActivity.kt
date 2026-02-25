@@ -1,11 +1,10 @@
-package com.azheng.androidviewutils.demo.edge
+package com.azheng.viewutils.edge
+
 
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import com.azheng.viewutils.edge.EdgeToEdgeConfig
-import com.azheng.viewutils.edge.EdgeToEdgeHelper
 
 abstract class BaseEdgeActivity : AppCompatActivity() {
 

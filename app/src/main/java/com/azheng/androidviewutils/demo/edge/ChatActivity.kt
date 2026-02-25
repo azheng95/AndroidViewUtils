@@ -1,6 +1,7 @@
 package com.azheng.androidviewutils.demo.edge
 
 import android.os.Bundle
+import com.azheng.viewutils.edge.BaseEdgeActivity
 
 /**
  * 聊天/评论等输入页面
