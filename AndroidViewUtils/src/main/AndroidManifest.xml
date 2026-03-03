@@ -10,6 +10,32 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:exported="false" />
+
+        <!-- 透明 Activity -->
+        <activity
+            android:name=".imagepicker.ImagePickerActivity"
+            android:exported="false"
+            android:theme="@style/ImagePicker_TransparentTheme"
+            tools:ignore="LockedOrientationActivity" />
+
+        <!-- App Startup 自动初始化 -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <!-- 注册 ImagePicker 初始化器 -->
+            <meta-data
+                android:name="com.azheng.viewutils.startup.ImagePickerInitializer"
+                android:value="androidx.startup" />
+
+            <!-- 注册 ImageViewer 初始化器 -->
+            <meta-data
+                android:name="com.azheng.viewutils.startup.ImageViewerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
+
     </application>
 
 </manifest>

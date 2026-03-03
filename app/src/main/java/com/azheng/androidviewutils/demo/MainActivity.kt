@@ -1,13 +1,18 @@
 package com.azheng.androidviewutils.demo
 
 import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
 import com.azheng.viewutils.edge.BaseEdgeActivity
+import com.azheng.viewutils.imagepicker.ImagePicker
 import com.azheng.viewutils.imageviewer.ImageViewer
 import dev.androidbroadcast.vbpd.viewBinding
+import kotlinx.coroutines.launch
 
 
-class MainEdgeActivity : BaseEdgeActivity() {
+class MainActivity : BaseEdgeActivity() {
 
     private val viewBinding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
     private val TAG = "MainActivity"
@@ -15,9 +20,20 @@ class MainEdgeActivity : BaseEdgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        ImageViewer.init(application)
+
         viewBinding.tvTestView.setOnClickListener {
             setImageViewer()
+        }
+        viewBinding.btnSelectImage.setOnClickListener {
+            lifecycleScope.launch {
+                val uris = ImagePicker.pickMediaSuspend(this@MainActivity)
+                if (uris.isNotEmpty()) {
+
+                    // 处理图片
+                    Log.d( TAG, "图片数量：${uris.size}")
+                }
+            }
+
         }
     }
 

@@ -6,6 +6,5 @@ import com.azheng.viewutils.imageviewer.ImageViewer
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        ImageViewer.init(this)
     }
 }
