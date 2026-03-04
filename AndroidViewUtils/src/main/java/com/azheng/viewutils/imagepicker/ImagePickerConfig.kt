@@ -9,8 +9,19 @@ class ImagePickerConfig private constructor(
     val maxCount: Int,
     val mediaType: MediaType,
     val enablePersistPermission: Boolean,
-    val maxVideoLength: Long  // 新增：视频最大时长限制（毫秒），0表示不限制
+    val maxVideoLength: Long,
+    val currentSelectedCount: Int,
+    val onMaxLimitReached: ((MaxLimitInfo) -> Unit)?  // ✅ 修改为带参数的回调
 ) {
+
+    /** 还能选择的数量 */
+    val remainingCount: Int get() = (maxCount - currentSelectedCount).coerceAtLeast(0)
+
+    /** 是否已达到最大限制 */
+    val isMaxLimitReached: Boolean get() = remainingCount <= 0
+
+    /** 获取限制信息 */
+    val maxLimitInfo: MaxLimitInfo get() = MaxLimitInfo(maxCount, currentSelectedCount)
 
     enum class MediaType {
         IMAGE_ONLY,
@@ -23,6 +34,8 @@ class ImagePickerConfig private constructor(
         private var mediaType: MediaType = MediaType.IMAGE_ONLY
         private var enablePersistPermission: Boolean = true
         private var maxVideoLength: Long = 0L
+        private var currentSelectedCount: Int = 0
+        private var onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null
 
         /** 最大选择数量 */
         fun maxCount(count: Int) = apply { this.maxCount = count.coerceIn(1, 99) }
@@ -48,43 +61,57 @@ class ImagePickerConfig private constructor(
         /** 视频最大时长限制（秒） */
         fun maxVideoLengthSeconds(seconds: Int) = apply { this.maxVideoLength = seconds * 1000L }
 
-        fun build() = ImagePickerConfig(maxCount, mediaType, enablePersistPermission, maxVideoLength)
+        /**
+         * 当前已选择的数量
+         */
+        fun currentSelectedCount(count: Int) = apply {
+            this.currentSelectedCount = count.coerceAtLeast(0)
+        }
+
+        /**
+         * 传入已选择的 Uri 列表，自动计算数量
+         */
+        fun currentSelectedUris(uris: List<Uri>?) = apply {
+            this.currentSelectedCount = uris?.size ?: 0
+        }
+
+        /**
+         * 达到最大选择限制时的回调
+         * @param callback 回调函数，参数包含 maxCount、currentCount、message
+         */
+        fun onMaxLimitReached(callback: (MaxLimitInfo) -> Unit) = apply {
+            this.onMaxLimitReached = callback
+        }
+
+        fun build() = ImagePickerConfig(
+            maxCount,
+            mediaType,
+            enablePersistPermission,
+            maxVideoLength,
+            currentSelectedCount,
+            onMaxLimitReached
+        )
     }
 
     companion object {
         fun default() = Builder().build()
 
-        /** 快捷方法：仅图片 */
-        fun imageOnly(maxCount: Int = 9) = Builder()
+        fun imageOnly(maxCount: Int = 9, currentSelected: Int = 0) = Builder()
             .maxCount(maxCount)
+            .currentSelectedCount(currentSelected)
             .imageOnly()
             .build()
 
-        /** 快捷方法：仅视频 */
-        fun videoOnly(maxCount: Int = 9) = Builder()
+        fun videoOnly(maxCount: Int = 9, currentSelected: Int = 0) = Builder()
             .maxCount(maxCount)
+            .currentSelectedCount(currentSelected)
             .videoOnly()
             .build()
 
-        /** 快捷方法：图片和视频 */
-        fun imageAndVideo(maxCount: Int = 9) = Builder()
+        fun imageAndVideo(maxCount: Int = 9, currentSelected: Int = 0) = Builder()
             .maxCount(maxCount)
+            .currentSelectedCount(currentSelected)
             .imageAndVideo()
             .build()
     }
-}
-
-/**
- * 选择结果封装
- */
-sealed class ImagePickerResult {
-    data class Success(val uris: List<Uri>) : ImagePickerResult()
-    data object Cancelled : ImagePickerResult()
-    data class Error(val exception: Throwable) : ImagePickerResult()
-
-    /** 是否成功且有数据 */
-    val isSuccessful: Boolean get() = this is Success && uris.isNotEmpty()
-
-    /** 获取 Uri 列表（失败返回空列表） */
-    fun getUrisOrEmpty(): List<Uri> = (this as? Success)?.uris ?: emptyList()
 }

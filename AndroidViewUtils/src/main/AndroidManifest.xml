@@ -15,7 +15,7 @@
         <activity
             android:name=".imagepicker.ImagePickerActivity"
             android:exported="false"
-            android:theme="@style/ImagePicker_TransparentTheme"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
             tools:ignore="LockedOrientationActivity" />
 
         <!-- App Startup 自动初始化 -->

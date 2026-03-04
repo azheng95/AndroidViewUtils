@@ -1,12 +1,16 @@
 package com.azheng.androidviewutils.demo
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
 import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.imagepicker.ImagePicker
+import com.azheng.viewutils.imagepicker.ImagePickerResult
 import com.azheng.viewutils.imageviewer.ImageViewer
 import dev.androidbroadcast.vbpd.viewBinding
 import kotlinx.coroutines.launch
@@ -25,15 +29,8 @@ class MainActivity : BaseEdgeActivity() {
             setImageViewer()
         }
         viewBinding.btnSelectImage.setOnClickListener {
-            lifecycleScope.launch {
-                val uris = ImagePicker.pickMediaSuspend(this@MainActivity)
-                if (uris.isNotEmpty()) {
-
-                    // 处理图片
-                    Log.d( TAG, "图片数量：${uris.size}")
-                }
-            }
-
+            val intent = Intent(this, ImagePickerDemoActivity::class.java)
+            startActivity(intent)
         }
     }
 

@@ -25,11 +25,11 @@ dependencyResolutionManagement {
 
 [ImageViewer.kt](AndroidViewUtils/src/main/java/com/azheng/viewutils/imageviewer/ImageViewer.kt)和[ImagePicker.kt](AndroidViewUtils/src/main/java/com/azheng/viewutils/imagepicker/ImagePicker.kt)工具会自动初始化
 
-在项目 app 模块下的 `build.gradle` 文件中加入远程依赖
+在项目 app 模块下的 `build.gradle` 文件中加入远程依赖 ，Tag 替换为最新版本
 
 ```groovy
 dependencies {
-	        implementation 'com.github.azheng95:AndroidViewUtils:0.0.2'
+	        implementation 'com.github.azheng95:AndroidViewUtils:Tag'
 }
 ```
 

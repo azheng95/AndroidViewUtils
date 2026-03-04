@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ImagePicker 使用示例"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- 已选数量显示 -->
+        <TextView
+            android:id="@+id/tvSelectedCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="已选择: 0/9"
+            android:textSize="16sp"
+            android:textColor="#FF5722"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- 图片预览区域 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:id="@+id/llPreviewContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:minHeight="100dp"/>
+        </HorizontalScrollView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- 基础用法 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="基础用法"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnPickSingleImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选择单张图片"/>
+
+        <Button
+            android:id="@+id/btnPickMultipleImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选择多张图片 (最多9张)"/>
+
+        <Button
+            android:id="@+id/btnPickVideos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选择视频 (最多3个)"/>
+
+        <Button
+            android:id="@+id/btnPickMedia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选择图片或视频"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginVertical="16dp"/>
+
+        <!-- 带限制的用法 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="带已选限制的用法"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnPickWithLimit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="继续选择 (传入已选数量)"/>
+
+        <Button
+            android:id="@+id/btnPickWithUriList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="继续选择 (传入已选Uri列表)"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginVertical="16dp"/>
+
+        <!-- 协程用法 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="协程用法"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnPickCoroutineSimple"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="协程 - 简单用法"/>
+
+        <Button
+            android:id="@+id/btnPickCoroutineFull"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="协程 - 完整结果"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginVertical="16dp"/>
+
+        <!-- 自定义配置 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="自定义配置"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnPickCustomConfig"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="使用 Builder 自定义配置"/>
+
+        <Button
+            android:id="@+id/btnClearSelected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="清空已选"
+            android:backgroundTint="#F44336"/>
+
+    </LinearLayout>
+</ScrollView>

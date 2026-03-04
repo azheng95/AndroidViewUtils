@@ -1,26 +1,28 @@
 package com.azheng.viewutils.imagepicker
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.view.Window
+import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-
 internal class ImagePickerActivity : AppCompatActivity() {
 
     private val config: ImagePickerConfig by lazy { ImagePicker.getConfig() }
 
-    // 不在这里初始化，改为延迟创建
     private var pickMultipleMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var pickSingleMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyTransparentTheme()
         super.onCreate(savedInstanceState)
         overridePendingTransition(0, 0)
 
-        // 在 onCreate 中根据 maxCount 动态注册
         registerLaunchers()
 
         if (savedInstanceState == null) {
@@ -29,16 +31,18 @@ internal class ImagePickerActivity : AppCompatActivity() {
     }
 
     private fun registerLaunchers() {
-        // 单选
         pickSingleMedia = registerForActivityResult(
             ActivityResultContracts.PickVisualMedia()
         ) { uri ->
             handleResult(if (uri != null) listOf(uri) else emptyList())
         }
 
-        // 多选 - 使用实际的 maxCount
+        // 使用 remainingCount 而不是 maxCount
+        // 实际选择时会通过 launchPicker() 根据 remainingCount 决定使用单选还是多选
+        val selectableCount = config.remainingCount.coerceAtLeast(2)
+
         pickMultipleMedia = registerForActivityResult(
-            ActivityResultContracts.PickMultipleVisualMedia(config.maxCount)  // ✅ 动态值
+            ActivityResultContracts.PickMultipleVisualMedia(selectableCount)
         ) { uris ->
             handleResult(uris)
         }
@@ -56,7 +60,8 @@ internal class ImagePickerActivity : AppCompatActivity() {
 
         val request = PickVisualMediaRequest(mediaType)
 
-        if (config.maxCount == 1) {
+        // ✅ 根据剩余可选数量决定单选还是多选
+        if (config.remainingCount == 1) {
             pickSingleMedia?.launch(request)
         } else {
             pickMultipleMedia?.launch(request)
@@ -67,8 +72,8 @@ internal class ImagePickerActivity : AppCompatActivity() {
         val result = if (uris.isEmpty()) {
             ImagePickerResult.Cancelled
         } else {
-            // 双重保险：再次限制数量
-            val limitedUris = uris.take(config.maxCount)
+            // ✅ 使用 remainingCount 限制
+            val limitedUris = uris.take(config.remainingCount)
 
             if (config.enablePersistPermission) {
                 limitedUris.forEach { uri -> takePersistPermission(uri) }
@@ -99,5 +104,33 @@ internal class ImagePickerActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         ImagePicker.deliverResult(ImagePickerResult.Cancelled)
+    }
+
+    private fun applyTransparentTheme() {
+        // 尝试使用 Material3 主题，失败则使用 AppCompat
+        try {
+            val themeId = resolveThemeId("Theme.Material3.DayNight.NoActionBar")
+            if (themeId != 0) {
+                setTheme(themeId)
+            }
+        } catch (e: Exception) {
+            // fallback
+        }
+
+        // 手动设置透明属性
+        window.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            requestFeature(Window.FEATURE_NO_TITLE)
+            addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        }
+    }
+
+    private fun resolveThemeId(themeName: String): Int {
+        return try {
+            val clazz = Class.forName("com.google.android.material.R\$style")
+            clazz.getField(themeName.replace(".", "_")).getInt(null)
+        } catch (e: Exception) {
+            0
+        }
     }
 }
