@@ -15,6 +15,14 @@
             android:text="ImagePicker 使用示例"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="统一使用 pickMedia / pickMediaSuspend API\n通过 MediaType 参数控制选择类型"
+            android:textSize="12sp"
+            android:textColor="#666666"
             android:layout_marginBottom="16dp"/>
 
         <!-- 已选数量显示 -->
@@ -51,7 +59,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="基础用法"
+            android:text="基础用法（MediaType 参数）"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
@@ -59,25 +67,25 @@
             android:id="@+id/btnPickSingleImage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="选择单张图片"/>
+            android:text="选择单张图片 (IMAGE_ONLY)"/>
 
         <Button
             android:id="@+id/btnPickMultipleImages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="选择多张图片 (最多9张)"/>
+            android:text="选择多张图片 (IMAGE_ONLY, max=9)"/>
 
         <Button
             android:id="@+id/btnPickVideos"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="选择视频 (最多3个)"/>
+            android:text="选择视频 (VIDEO_ONLY, max=3)"/>
 
         <Button
             android:id="@+id/btnPickMedia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="选择图片或视频"/>
+            android:text="选择媒体 (IMAGE_AND_VIDEO 默认)"/>
 
         <View
             android:layout_width="match_parent"
@@ -115,7 +123,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="协程用法"
+            android:text="协程用法 (pickMediaSuspend)"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
@@ -123,13 +131,13 @@
             android:id="@+id/btnPickCoroutineSimple"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="协程 - 简单用法"/>
+            android:text="协程 - 返回 List&lt;Uri&gt;"/>
 
         <Button
             android:id="@+id/btnPickCoroutineFull"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="协程 - 完整结果"/>
+            android:text="协程 - 返回 ImagePickerResult"/>
 
         <View
             android:layout_width="match_parent"
@@ -141,7 +149,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="自定义配置"
+            android:text="自定义配置 (Builder)"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
 
@@ -149,7 +157,7 @@
             android:id="@+id/btnPickCustomConfig"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="使用 Builder 自定义配置"/>
+            android:text="使用 ImagePickerConfig.Builder"/>
 
         <Button
             android:id="@+id/btnClearSelected"

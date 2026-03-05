@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+
 internal class ImagePickerActivity : AppCompatActivity() {
 
     private val config: ImagePickerConfig by lazy { ImagePicker.getConfig() }
@@ -50,11 +51,13 @@ internal class ImagePickerActivity : AppCompatActivity() {
 
     private fun launchPicker() {
         val mediaType = when (config.mediaType) {
-            ImagePickerConfig.MediaType.IMAGE_ONLY ->
+            MediaType.IMAGE_ONLY ->
                 ActivityResultContracts.PickVisualMedia.ImageOnly
-            ImagePickerConfig.MediaType.VIDEO_ONLY ->
+
+            MediaType.VIDEO_ONLY ->
                 ActivityResultContracts.PickVisualMedia.VideoOnly
-            ImagePickerConfig.MediaType.IMAGE_AND_VIDEO ->
+
+            MediaType.IMAGE_AND_VIDEO ->
                 ActivityResultContracts.PickVisualMedia.ImageAndVideo
         }
 
@@ -92,7 +95,8 @@ internal class ImagePickerActivity : AppCompatActivity() {
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
-        } catch (_: SecurityException) { }
+        } catch (_: SecurityException) {
+        }
     }
 
     private fun finishQuietly() {

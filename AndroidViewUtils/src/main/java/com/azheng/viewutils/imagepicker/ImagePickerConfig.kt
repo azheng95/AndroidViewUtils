@@ -11,7 +11,7 @@ class ImagePickerConfig private constructor(
     val enablePersistPermission: Boolean,
     val maxVideoLength: Long,
     val currentSelectedCount: Int,
-    val onMaxLimitReached: ((MaxLimitInfo) -> Unit)?  // ✅ 修改为带参数的回调
+    val onMaxLimitReached: ((MaxLimitInfo) -> Unit)?
 ) {
 
     /** 还能选择的数量 */
@@ -23,15 +23,9 @@ class ImagePickerConfig private constructor(
     /** 获取限制信息 */
     val maxLimitInfo: MaxLimitInfo get() = MaxLimitInfo(maxCount, currentSelectedCount)
 
-    enum class MediaType {
-        IMAGE_ONLY,
-        VIDEO_ONLY,
-        IMAGE_AND_VIDEO
-    }
-
     class Builder {
         private var maxCount: Int = 9
-        private var mediaType: MediaType = MediaType.IMAGE_ONLY
+        private var mediaType: MediaType = MediaType.IMAGE_AND_VIDEO
         private var enablePersistPermission: Boolean = true
         private var maxVideoLength: Long = 0L
         private var currentSelectedCount: Int = 0

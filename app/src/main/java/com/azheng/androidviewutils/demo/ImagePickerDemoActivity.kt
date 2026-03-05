@@ -13,10 +13,17 @@ import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.imagepicker.ImagePicker
 import com.azheng.viewutils.imagepicker.ImagePickerConfig
 import com.azheng.viewutils.imagepicker.ImagePickerResult
+import com.azheng.viewutils.imagepicker.MediaType
 import kotlinx.coroutines.launch
 
 /**
  * ImagePicker 使用示例
+ *
+ * 展示统一的 pickMedia / pickMediaSuspend API 用法
+ * 通过 MediaType 参数控制选择类型：
+ * - MediaType.IMAGE_ONLY: 仅图片
+ * - MediaType.VIDEO_ONLY: 仅视频
+ * - MediaType.IMAGE_AND_VIDEO: 图片和视频（默认）
  */
 class ImagePickerDemoActivity : BaseEdgeActivity() {
     private val TAG = "ImagePickerDemoActivity"
@@ -47,26 +54,38 @@ class ImagePickerDemoActivity : BaseEdgeActivity() {
 
         // 1. 选择单张图片
         findViewById<Button>(R.id.btnPickSingleImage).setOnClickListener {
-            ImagePicker.pickImages(this, maxCount = 1) { result ->
+            ImagePicker.pickMedia(
+                context = this,
+                maxCount = 1,
+                mediaType = MediaType.IMAGE_ONLY
+            ) { result ->
                 handleResult("单张图片", result)
             }
         }
 
         // 2. 选择多张图片（最多9张）
         findViewById<Button>(R.id.btnPickMultipleImages).setOnClickListener {
-            ImagePicker.pickImages(this, maxCount = 9) { result ->
+            ImagePicker.pickMedia(
+                context = this,
+                maxCount = 9,
+                mediaType = MediaType.IMAGE_ONLY
+            ) { result ->
                 handleResult("多张图片", result)
             }
         }
 
         // 3. 选择视频
         findViewById<Button>(R.id.btnPickVideos).setOnClickListener {
-            ImagePicker.pickVideos(this, maxCount = 3) { result ->
+            ImagePicker.pickMedia(
+                context = this,
+                maxCount = 3,
+                mediaType = MediaType.VIDEO_ONLY
+            ) { result ->
                 handleResult("视频", result)
             }
         }
 
-        // 4. 选择图片或视频（混合选择）
+        // 4. 选择图片或视频（混合选择 - 使用默认 MediaType.IMAGE_AND_VIDEO）
         findViewById<Button>(R.id.btnPickMedia).setOnClickListener {
             ImagePicker.pickMedia(this, maxCount = 9) { result ->
                 handleResult("媒体文件", result)
@@ -77,9 +96,10 @@ class ImagePickerDemoActivity : BaseEdgeActivity() {
 
         // 5. 继续选择（带已选数量限制）
         findViewById<Button>(R.id.btnPickWithLimit).setOnClickListener {
-            ImagePicker.pickImages(
+            ImagePicker.pickMedia(
                 context = this,
                 maxCount = maxSelectCount,
+                mediaType = MediaType.IMAGE_ONLY,
                 currentSelectedCount = selectedUris.size,
                 onMaxLimitReached = { info ->
                     // 达到最大限制时的提示
@@ -93,9 +113,10 @@ class ImagePickerDemoActivity : BaseEdgeActivity() {
 
         // 6. 使用 Uri 列表计算已选数量
         findViewById<Button>(R.id.btnPickWithUriList).setOnClickListener {
-            ImagePicker.pickImages(
+            ImagePicker.pickMedia(
                 context = this,
                 maxCount = maxSelectCount,
+                mediaType = MediaType.IMAGE_ONLY,
                 currentSelectedUris = selectedUris,  // 直接传入已选 Uri 列表
                 onMaxLimitReached = { info ->
                     Toast.makeText(this, "已达上限：${info.message}", Toast.LENGTH_SHORT).show()
@@ -107,25 +128,36 @@ class ImagePickerDemoActivity : BaseEdgeActivity() {
 
         // ==================== 协程用法 ====================
 
-        // 7. 协程方式 - 简单用法
+        // 7. 协程方式 - 简单用法（返回 Uri 列表）
         findViewById<Button>(R.id.btnPickCoroutineSimple).setOnClickListener {
             lifecycleScope.launch {
-                val uris = ImagePicker.pickImagesSuspend(this@ImagePickerDemoActivity, maxCount = 5)
+                val uris = ImagePicker.pickMediaSuspend(
+                    context = this@ImagePickerDemoActivity,
+                    maxCount = 5,
+                    mediaType = MediaType.IMAGE_ONLY
+                )
                 if (uris.isNotEmpty()) {
                     Log.d(TAG, "协程选择成功: ${uris.size}张")
                     showSelectedImages(uris)
+                    Toast.makeText(
+                        this@ImagePickerDemoActivity,
+                        "选择了 ${uris.size} 张图片",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     Log.d(TAG, "协程选择取消或失败")
+                    Toast.makeText(this@ImagePickerDemoActivity, "已取消", Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
-        // 8. 协程方式 - 完整结果
+        // 8. 协程方式 - 完整结果（返回 ImagePickerResult）
         findViewById<Button>(R.id.btnPickCoroutineFull).setOnClickListener {
             lifecycleScope.launch {
-                val result = ImagePicker.pickImagesSuspend(
+                val result = ImagePicker.pickMediaSuspend(
                     context = this@ImagePickerDemoActivity,
                     maxCount = maxSelectCount,
+                    mediaType = MediaType.IMAGE_ONLY,
                     currentSelectedCount = selectedUris.size
                 )
                 handleResultWithAdd(result)
@@ -138,7 +170,7 @@ class ImagePickerDemoActivity : BaseEdgeActivity() {
         findViewById<Button>(R.id.btnPickCustomConfig).setOnClickListener {
             val config = ImagePickerConfig.Builder()
                 .maxCount(6)
-                .imageAndVideo()  // 图片和视频都可选
+                .mediaType(MediaType.IMAGE_AND_VIDEO)  // 或使用 .imageAndVideo()
                 .enablePersistPermission(true)  // 获取持久权限
                 .currentSelectedCount(selectedUris.size)
                 .onMaxLimitReached { info ->

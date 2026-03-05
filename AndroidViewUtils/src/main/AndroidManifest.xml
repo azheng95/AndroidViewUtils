@@ -15,6 +15,8 @@
         <activity
             android:name=".imagepicker.ImagePickerActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             tools:ignore="LockedOrientationActivity" />
 

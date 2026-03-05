@@ -22,17 +22,27 @@ import kotlin.coroutines.resume
  *
  * 使用示例：
  * ```kotlin
- * // 回调方式
- * ImagePicker.pickImages(context, maxCount = 9) { result ->
+ * // 回调方式 - 选择图片和视频
+ * ImagePicker.pickMedia(context, maxCount = 9) { result ->
  *     when (result) {
  *         is ImagePickerResult.Success -> handleUris(result.uris)
- *         is ImagePickerResult.Canceled -> showCanceledMessage()
+ *         is ImagePickerResult.Cancelled -> showCancelledMessage()
  *         is ImagePickerResult.MaxLimitReached -> showLimitWarning()
  *     }
  * }
  *
+ * // 回调方式 - 仅选择图片
+ * ImagePicker.pickMedia(context, maxCount = 9, mediaType = MediaType.IMAGE_ONLY) { result ->
+ *     // 处理结果
+ * }
+ *
+ * // 回调方式 - 仅选择视频
+ * ImagePicker.pickMedia(context, maxCount = 9, mediaType = MediaType.VIDEO_ONLY) { result ->
+ *     // 处理结果
+ * }
+ *
  * // 协程方式
- * val uris = ImagePicker.pickImagesSuspend(context, maxCount = 9)
+ * val uris = ImagePicker.pickMediaSuspend(context, maxCount = 9, mediaType = MediaType.IMAGE_ONLY)
  * ```
  *
  * @author AZheng
@@ -99,200 +109,72 @@ object ImagePicker {
         }
     }
 
-    // ==================== 图片选择 API ====================
+    // ==================== 媒体选择 API ====================
 
     /**
-     * 选择图片（仅图片）
+     * 选择媒体文件（图片和/或视频）
      *
      * @param context 上下文，Activity 或 Context
      * @param maxCount 最大可选数量，默认为 9
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
      * @param onResult 结果回调
      */
     @JvmStatic
     @MainThread
-    fun pickImages(
+    fun pickMedia(
         context: Context,
         maxCount: Int = 9,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO,
         onResult: (ImagePickerResult) -> Unit
     ) {
-        pick(context, ImagePickerConfig.imageOnly(maxCount), onResult)
+        val config = ImagePickerConfig.Builder()
+            .maxCount(maxCount)
+            .mediaType(mediaType)
+            .build()
+        pick(context, config, onResult)
     }
 
     /**
-     * 选择图片 - 带已选数量限制
+     * 选择媒体文件 - 带已选数量限制
      *
      * 适用于编辑场景，需要扣除已选择的数量
      *
      * @param context 上下文
      * @param maxCount 最大可选总数
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
      * @param currentSelectedCount 当前已选数量（将从 maxCount 中扣除）
      * @param onMaxLimitReached 达到最大限制时的回调（可选）
      * @param onResult 结果回调
      */
     @JvmStatic
     @MainThread
-    fun pickImages(
+    fun pickMedia(
         context: Context,
         maxCount: Int = 9,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO,
         currentSelectedCount: Int,
-        onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null,
-        onResult: (ImagePickerResult) -> Unit
-    ) {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount,
-            onMaxLimitReached = onMaxLimitReached
-        ) { imageOnly() }
-        pick(context, config, onResult)
-    }
-
-    /**
-     * 选择图片 - 带已选 Uri 列表限制
-     *
-     * 根据已选 Uri 列表自动计算当前已选数量
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选总数
-     * @param currentSelectedUris 当前已选的 Uri 列表
-     * @param onMaxLimitReached 达到最大限制时的回调（可选）
-     * @param onResult 结果回调
-     */
-    @JvmStatic
-    @MainThread
-    fun pickImages(
-        context: Context,
-        maxCount: Int = 9,
-        currentSelectedUris: List<Uri>?,
         onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null,
         onResult: (ImagePickerResult) -> Unit
     ) {
         val config = ImagePickerConfig.Builder()
             .maxCount(maxCount)
-            .currentSelectedUris(currentSelectedUris)
-            .imageOnly()
+            .mediaType(mediaType)
+            .currentSelectedCount(currentSelectedCount)
             .apply { onMaxLimitReached?.let { onMaxLimitReached(it) } }
             .build()
         pick(context, config, onResult)
     }
 
     /**
-     * 选择图片 - 协程挂起版
+     * 选择媒体文件 - 带已选 Uri 列表限制
      *
-     * @param context 上下文
-     * @param maxCount 最大可选数量
-     * @return 选中的 Uri 列表，取消或失败时返回空列表
-     */
-    @JvmStatic
-    suspend fun pickImagesSuspend(context: Context, maxCount: Int = 9): List<Uri> {
-        return pickSuspend(context, ImagePickerConfig.imageOnly(maxCount)).getUrisOrEmpty()
-    }
-
-    /**
-     * 选择图片 - 协程版，带已选数量限制
+     * 根据已选 Uri 列表自动计算当前已选数量
      *
      * @param context 上下文
      * @param maxCount 最大可选总数
-     * @param currentSelectedCount 当前已选数量
-     * @return 完整的选择结果对象
-     */
-    @JvmStatic
-    suspend fun pickImagesSuspend(
-        context: Context,
-        maxCount: Int = 9,
-        currentSelectedCount: Int
-    ): ImagePickerResult {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount
-        ) { imageOnly() }
-        return pickSuspend(context, config)
-    }
-
-    // ==================== 视频选择 API ====================
-
-    /**
-     * 选择视频（仅视频）
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选数量，默认为 9
-     * @param onResult 结果回调
-     */
-    @JvmStatic
-    @MainThread
-    fun pickVideos(
-        context: Context,
-        maxCount: Int = 9,
-        onResult: (ImagePickerResult) -> Unit
-    ) {
-        pick(context, ImagePickerConfig.videoOnly(maxCount), onResult)
-    }
-
-    /**
-     * 选择视频 - 带已选数量限制
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选总数
-     * @param currentSelectedCount 当前已选数量
-     * @param onMaxLimitReached 达到最大限制时的回调
-     * @param onResult 结果回调
-     */
-    @JvmStatic
-    @MainThread
-    fun pickVideos(
-        context: Context,
-        maxCount: Int = 9,
-        currentSelectedCount: Int,
-        onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null,
-        onResult: (ImagePickerResult) -> Unit
-    ) {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount,
-            onMaxLimitReached = onMaxLimitReached
-        ) { videoOnly() }
-        pick(context, config, onResult)
-    }
-
-    /**
-     * 选择视频 - 协程挂起版
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选数量
-     * @return 选中的 Uri 列表
-     */
-    @JvmStatic
-    suspend fun pickVideosSuspend(context: Context, maxCount: Int = 9): List<Uri> {
-        return pickSuspend(context, ImagePickerConfig.videoOnly(maxCount)).getUrisOrEmpty()
-    }
-
-    /**
-     * 选择视频 - 协程版，带已选数量限制
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选总数
-     * @param currentSelectedCount 当前已选数量
-     * @return 完整的选择结果对象
-     */
-    @JvmStatic
-    suspend fun pickVideosSuspend(
-        context: Context,
-        maxCount: Int = 9,
-        currentSelectedCount: Int
-    ): ImagePickerResult {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount
-        ) { videoOnly() }
-        return pickSuspend(context, config)
-    }
-
-    // ==================== 混合选择 API ====================
-
-    /**
-     * 选择媒体文件（图片和视频）
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选数量，默认为 9
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
+     * @param currentSelectedUris 当前已选的 Uri 列表
+     * @param onMaxLimitReached 达到最大限制时的回调（可选）
      * @param onResult 结果回调
      */
     @JvmStatic
@@ -300,34 +182,17 @@ object ImagePicker {
     fun pickMedia(
         context: Context,
         maxCount: Int = 9,
-        onResult: (ImagePickerResult) -> Unit
-    ) {
-        pick(context, ImagePickerConfig.imageAndVideo(maxCount), onResult)
-    }
-
-    /**
-     * 选择媒体文件 - 带已选数量限制
-     *
-     * @param context 上下文
-     * @param maxCount 最大可选总数
-     * @param currentSelectedCount 当前已选数量
-     * @param onMaxLimitReached 达到最大限制时的回调
-     * @param onResult 结果回调
-     */
-    @JvmStatic
-    @MainThread
-    fun pickMedia(
-        context: Context,
-        maxCount: Int = 9,
-        currentSelectedCount: Int,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO,
+        currentSelectedUris: List<Uri>?,
         onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null,
         onResult: (ImagePickerResult) -> Unit
     ) {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount,
-            onMaxLimitReached = onMaxLimitReached
-        ) { imageAndVideo() }
+        val config = ImagePickerConfig.Builder()
+            .maxCount(maxCount)
+            .mediaType(mediaType)
+            .currentSelectedUris(currentSelectedUris)
+            .apply { onMaxLimitReached?.let { onMaxLimitReached(it) } }
+            .build()
         pick(context, config, onResult)
     }
 
@@ -336,11 +201,20 @@ object ImagePicker {
      *
      * @param context 上下文
      * @param maxCount 最大可选数量
-     * @return 选中的 Uri 列表
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
+     * @return 选中的 Uri 列表，取消或失败时返回空列表
      */
     @JvmStatic
-    suspend fun pickMediaSuspend(context: Context, maxCount: Int = 9): List<Uri> {
-        return pickSuspend(context, ImagePickerConfig.imageAndVideo(maxCount)).getUrisOrEmpty()
+    suspend fun pickMediaSuspend(
+        context: Context,
+        maxCount: Int = 9,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO
+    ): List<Uri> {
+        val config = ImagePickerConfig.Builder()
+            .maxCount(maxCount)
+            .mediaType(mediaType)
+            .build()
+        return pickSuspend(context, config).getUrisOrEmpty()
     }
 
     /**
@@ -348,6 +222,7 @@ object ImagePicker {
      *
      * @param context 上下文
      * @param maxCount 最大可选总数
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
      * @param currentSelectedCount 当前已选数量
      * @return 完整的选择结果对象
      */
@@ -355,12 +230,38 @@ object ImagePicker {
     suspend fun pickMediaSuspend(
         context: Context,
         maxCount: Int = 9,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO,
         currentSelectedCount: Int
     ): ImagePickerResult {
-        val config = buildConfigWithLimit(
-            maxCount = maxCount,
-            currentSelectedCount = currentSelectedCount
-        ) { imageAndVideo() }
+        val config = ImagePickerConfig.Builder()
+            .maxCount(maxCount)
+            .mediaType(mediaType)
+            .currentSelectedCount(currentSelectedCount)
+            .build()
+        return pickSuspend(context, config)
+    }
+
+    /**
+     * 选择媒体文件 - 协程版，带已选 Uri 列表限制
+     *
+     * @param context 上下文
+     * @param maxCount 最大可选总数
+     * @param mediaType 媒体类型，默认为图片和视频混合选择
+     * @param currentSelectedUris 当前已选的 Uri 列表
+     * @return 完整的选择结果对象
+     */
+    @JvmStatic
+    suspend fun pickMediaSuspend(
+        context: Context,
+        maxCount: Int = 9,
+        mediaType: MediaType = MediaType.IMAGE_AND_VIDEO,
+        currentSelectedUris: List<Uri>?
+    ): ImagePickerResult {
+        val config = ImagePickerConfig.Builder()
+            .maxCount(maxCount)
+            .mediaType(mediaType)
+            .currentSelectedUris(currentSelectedUris)
+            .build()
         return pickSuspend(context, config)
     }
 
@@ -427,31 +328,6 @@ object ImagePicker {
     }
 
     // ==================== 内部辅助方法 ====================
-
-    /**
-     * 构建带数量限制的配置
-     *
-     * 减少重复代码的私有辅助方法
-     *
-     * @param maxCount 最大数量
-     * @param currentSelectedCount 当前已选数量
-     * @param onMaxLimitReached 达到限制的回调
-     * @param mediaTypeConfig 媒体类型配置 lambda
-     * @return 配置对象
-     */
-    private inline fun buildConfigWithLimit(
-        maxCount: Int,
-        currentSelectedCount: Int,
-        noinline onMaxLimitReached: ((MaxLimitInfo) -> Unit)? = null,
-        mediaTypeConfig: ImagePickerConfig.Builder.() -> ImagePickerConfig.Builder
-    ): ImagePickerConfig {
-        return ImagePickerConfig.Builder()
-            .maxCount(maxCount)
-            .currentSelectedCount(currentSelectedCount)
-            .mediaTypeConfig()
-            .apply { onMaxLimitReached?.let { onMaxLimitReached(it) } }
-            .build()
-    }
 
     /**
      * 处理达到最大限制的情况
