@@ -93,12 +93,6 @@ object EdgeToEdgeHelper {
             statusBarStyle = config.toStatusBarSystemStyle(),
             navigationBarStyle = config.toNavigationBarSystemStyle()
         )
-
-        // 处理刘海屏
-        if (config.fitDisplayCutout && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            activity.window.attributes.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
     }
 
     /**
