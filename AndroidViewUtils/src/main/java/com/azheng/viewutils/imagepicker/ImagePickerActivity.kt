@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +23,15 @@ internal class ImagePickerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         applyTransparentTheme()
         super.onCreate(savedInstanceState)
-        overridePendingTransition(0, 0)
+
+        setupBackPressHandler()
+
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
 
         registerLaunchers()
 
@@ -63,7 +72,7 @@ internal class ImagePickerActivity : AppCompatActivity() {
 
         val request = PickVisualMediaRequest(mediaType)
 
-        // ✅ 根据剩余可选数量决定单选还是多选
+        //  根据剩余可选数量决定单选还是多选
         if (config.remainingCount == 1) {
             pickSingleMedia?.launch(request)
         } else {
@@ -75,7 +84,7 @@ internal class ImagePickerActivity : AppCompatActivity() {
         val result = if (uris.isEmpty()) {
             ImagePickerResult.Cancelled
         } else {
-            // ✅ 使用 remainingCount 限制
+            //  使用 remainingCount 限制
             val limitedUris = uris.take(config.remainingCount)
 
             if (config.enablePersistPermission) {
@@ -99,15 +108,23 @@ internal class ImagePickerActivity : AppCompatActivity() {
         }
     }
 
-    private fun finishQuietly() {
-        finish()
-        overridePendingTransition(0, 0)
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                ImagePicker.deliverResult(ImagePickerResult.Cancelled)
+                finishQuietly()
+            }
+        })
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        ImagePicker.deliverResult(ImagePickerResult.Cancelled)
+    private fun finishQuietly() {
+        finish()
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
     }
 
     private fun applyTransparentTheme() {

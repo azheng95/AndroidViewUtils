@@ -1,116 +1,147 @@
-// EdgeToEdgeConfig.kt
 package com.azheng.viewutils.edge
 
 import android.graphics.Color
 import android.view.View
+import androidx.activity.SystemBarStyle
 import androidx.annotation.ColorInt
 
 /**
  * Edge-to-Edge 配置类
- * 使用Builder模式，支持链式调用
+ * 支持 Android 8.0 - 16
  */
-data class EdgeToEdgeConfig private constructor(
-    val isEnabled: Boolean,
-    val isStatusBarTransparent: Boolean,
-    val isNavigationBarTransparent: Boolean,
-    @ColorInt val statusBarColor: Int,
-    @ColorInt val navigationBarColor: Int,
-    val isLightStatusBar: Boolean,
-    val isLightNavigationBar: Boolean,
-    val fitStatusBar: Boolean,
-    val fitNavigationBar: Boolean,
-    val fitIme: Boolean,
-    val fitDisplayCutout: Boolean,
-    val paddingView: View?,
-    val marginView: View?
+data class EdgeToEdgeConfig(
+    /** 状态栏样式 */
+    val statusBarStyle: StatusBarStyle = StatusBarStyle.Light,
+    /** 导航栏样式 */
+    val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.Light,
+    /** 是否适配状态栏 (添加 padding 避免内容重叠) */
+    val fitStatusBar: Boolean = true,
+    /** 是否适配导航栏 */
+    val fitNavigationBar: Boolean = true,
+    /** 是否适配 IME (软键盘) */
+    val fitIme: Boolean = false,
+    /** 是否适配刘海屏 */
+    val fitDisplayCutout: Boolean = true
 ) {
-    
+
+    /**
+     * 状态栏样式
+     */
+    sealed class StatusBarStyle {
+        /** 亮色背景，深色图标 */
+        object Light : StatusBarStyle()
+        /** 深色背景，亮色图标 */
+        object Dark : StatusBarStyle()
+        /** 自动：根据系统主题自动切换 */
+        object Auto : StatusBarStyle()
+        /** 自定义颜色 */
+        data class Custom(
+            @ColorInt val lightScrim: Int,
+            @ColorInt val darkScrim: Int
+        ) : StatusBarStyle()
+    }
+
+    /**
+     * 导航栏样式
+     */
+    sealed class NavigationBarStyle {
+        /** 亮色背景，深色图标 */
+        object Light : NavigationBarStyle()
+        /** 深色背景，亮色图标 */
+        object Dark : NavigationBarStyle()
+        /** 自动：根据系统主题自动切换 */
+        object Auto : NavigationBarStyle()
+        /** 自定义颜色 */
+        data class Custom(
+            @ColorInt val lightScrim: Int,
+            @ColorInt val darkScrim: Int
+        ) : NavigationBarStyle()
+    }
+
+    /**
+     * 转换为 AndroidX SystemBarStyle
+     */
+    internal fun toStatusBarSystemStyle(): SystemBarStyle {
+        return when (statusBarStyle) {
+            is StatusBarStyle.Light -> SystemBarStyle.light(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            )
+            is StatusBarStyle.Dark -> SystemBarStyle.dark(Color.TRANSPARENT)
+            is StatusBarStyle.Auto -> SystemBarStyle.auto(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            )
+            is StatusBarStyle.Custom -> SystemBarStyle.auto(
+                statusBarStyle.lightScrim,
+                statusBarStyle.darkScrim
+            )
+        }
+    }
+
+    internal fun toNavigationBarSystemStyle(): SystemBarStyle {
+        return when (navigationBarStyle) {
+            is NavigationBarStyle.Light -> SystemBarStyle.light(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            )
+            is NavigationBarStyle.Dark -> SystemBarStyle.dark(Color.TRANSPARENT)
+            is NavigationBarStyle.Auto -> SystemBarStyle.auto(
+                Color.TRANSPARENT, Color.TRANSPARENT
+            )
+            is NavigationBarStyle.Custom -> SystemBarStyle.auto(
+                navigationBarStyle.lightScrim,
+                navigationBarStyle.darkScrim
+            )
+        }
+    }
+
+    companion object {
+        /** 默认配置：亮色主题 */
+        fun default() = EdgeToEdgeConfig()
+
+        /** 深色主题 */
+        fun dark() = EdgeToEdgeConfig(
+            statusBarStyle = StatusBarStyle.Dark,
+            navigationBarStyle = NavigationBarStyle.Dark
+        )
+
+        /** 自动主题：跟随系统 */
+        fun auto() = EdgeToEdgeConfig(
+            statusBarStyle = StatusBarStyle.Auto,
+            navigationBarStyle = NavigationBarStyle.Auto
+        )
+
+        /** 沉浸式：内容延伸到系统栏下方 */
+        fun immersive() = EdgeToEdgeConfig(
+            fitStatusBar = false,
+            fitNavigationBar = false
+        )
+
+        /** 带输入法适配 */
+        fun withIme() = EdgeToEdgeConfig(fitIme = true)
+    }
+
+    /** Builder 模式 */
     class Builder {
-        private var isEnabled: Boolean = true
-        private var isStatusBarTransparent: Boolean = true
-        private var isNavigationBarTransparent: Boolean = true
-        @ColorInt private var statusBarColor: Int = Color.TRANSPARENT
-        @ColorInt private var navigationBarColor: Int = Color.TRANSPARENT
-        private var isLightStatusBar: Boolean = true
-        private var isLightNavigationBar: Boolean = true
+        private var statusBarStyle: StatusBarStyle = StatusBarStyle.Light
+        private var navigationBarStyle: NavigationBarStyle = NavigationBarStyle.Light
         private var fitStatusBar: Boolean = true
         private var fitNavigationBar: Boolean = true
         private var fitIme: Boolean = false
         private var fitDisplayCutout: Boolean = true
-        private var paddingView: View? = null
-        private var marginView: View? = null
 
-        /** 是否启用Edge-to-Edge */
-        fun enabled(enabled: Boolean) = apply { isEnabled = enabled }
-
-        /** 状态栏透明 */
-        fun statusBarTransparent(transparent: Boolean) = apply { 
-            isStatusBarTransparent = transparent 
-        }
-
-        /** 导航栏透明 */
-        fun navigationBarTransparent(transparent: Boolean) = apply { 
-            isNavigationBarTransparent = transparent 
-        }
-
-        /** 状态栏颜色 */
-        fun statusBarColor(@ColorInt color: Int) = apply { 
-            statusBarColor = color
-            isStatusBarTransparent = color == Color.TRANSPARENT
-        }
-
-        /** 导航栏颜色 */
-        fun navigationBarColor(@ColorInt color: Int) = apply { 
-            navigationBarColor = color
-            isNavigationBarTransparent = color == Color.TRANSPARENT
-        }
-
-        /** 亮色状态栏（深色图标） */
-        fun lightStatusBar(light: Boolean) = apply { isLightStatusBar = light }
-
-        /** 亮色导航栏（深色图标） */
-        fun lightNavigationBar(light: Boolean) = apply { isLightNavigationBar = light }
-
-        /** 是否适配状态栏（添加padding/margin避免重叠） */
+        fun statusBarStyle(style: StatusBarStyle) = apply { statusBarStyle = style }
+        fun navigationBarStyle(style: NavigationBarStyle) = apply { navigationBarStyle = style }
+        fun lightStatusBar() = apply { statusBarStyle = StatusBarStyle.Light }
+        fun darkStatusBar() = apply { statusBarStyle = StatusBarStyle.Dark }
+        fun lightNavigationBar() = apply { navigationBarStyle = NavigationBarStyle.Light }
+        fun darkNavigationBar() = apply { navigationBarStyle = NavigationBarStyle.Dark }
         fun fitStatusBar(fit: Boolean) = apply { fitStatusBar = fit }
-
-        /** 是否适配导航栏（添加padding/margin避免重叠） */
         fun fitNavigationBar(fit: Boolean) = apply { fitNavigationBar = fit }
-
-        /** 是否适配输入法 */
         fun fitIme(fit: Boolean) = apply { fitIme = fit }
-
-        /** 是否适配刘海屏 */
         fun fitDisplayCutout(fit: Boolean) = apply { fitDisplayCutout = fit }
 
-        /** 设置需要添加padding的View */
-        fun paddingView(view: View?) = apply { paddingView = view }
-
-        /** 设置需要添加margin的View */
-        fun marginView(view: View?) = apply { marginView = view }
-
         fun build() = EdgeToEdgeConfig(
-            isEnabled, isStatusBarTransparent, isNavigationBarTransparent,
-            statusBarColor, navigationBarColor, isLightStatusBar, isLightNavigationBar,
-            fitStatusBar, fitNavigationBar, fitIme, fitDisplayCutout,
-            paddingView, marginView
+            statusBarStyle, navigationBarStyle,
+            fitStatusBar, fitNavigationBar, fitIme, fitDisplayCutout
         )
-    }
-
-    companion object {
-        /** 默认配置：全透明，亮色图标 */
-        fun default() = Builder().build()
-
-        /** 沉浸式配置：全透明，不适配（内容延伸到系统栏下） */
-        fun immersive() = Builder()
-            .fitStatusBar(false)
-            .fitNavigationBar(false)
-            .build()
-
-        /** 仅状态栏透明 */
-        fun transparentStatusBar() = Builder()
-            .navigationBarTransparent(false)
-            .navigationBarColor(Color.WHITE)
-            .build()
     }
 }

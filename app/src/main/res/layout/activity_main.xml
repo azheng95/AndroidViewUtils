@@ -19,4 +19,10 @@
         android:layout_height="wrap_content"
         android:text="选择图片"
         />
+    <Button
+        android:id="@+id/btnEdgeDemo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="状态栏导航栏"
+        />
 </LinearLayout>

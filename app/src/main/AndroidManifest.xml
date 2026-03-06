@@ -32,6 +32,38 @@
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
 
+        <!-- ==================== Edge-to-Edge Demo ==================== -->
+
+        <!-- Edge Demo 列表入口 -->
+        <activity
+            android:name=".edgedemo.EdgeDemoListActivity"
+            android:exported="false"
+            android:label="Edge-to-Edge Demo" />
+
+        <!-- 完整功能演示 -->
+        <activity
+            android:name=".edgedemo.DemoEdgeActivity"
+            android:exported="false"
+            android:label="完整功能演示" />
+
+        <!-- 简单用法示例 -->
+        <activity
+            android:name=".edgedemo.SimpleDemoActivity"
+            android:exported="false"
+            android:label="简单用法示例" />
+
+        <!-- 扩展函数用法示例 -->
+        <activity
+            android:name=".edgedemo.ExtensionDemoActivity"
+            android:exported="false"
+            android:label="扩展函数用法" />
+
+        <!-- 沉浸式全屏示例 -->
+        <activity
+            android:name=".edgedemo.ImmersiveDemoActivity"
+            android:exported="false"
+            android:label="沉浸式全屏"
+            android:theme="@style/Theme.AndroidUtils.NoActionBar" />
 
     </application>
 

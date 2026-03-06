@@ -1,248 +1,278 @@
-// EdgeToEdgeHelper.kt
 package com.azheng.viewutils.edge
 
-import android.app.Activity
-import android.graphics.Color
 import android.os.Build
 import android.view.View
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updatePadding
 
 /**
  * Edge-to-Edge 核心工具类
- * 使用外观模式，封装复杂的适配逻辑
- * 场景	isLightStatusBar	isFitStatusBar	isFitNavigationBar	isFitIme
- * 默认白色主题	true	true	true	false
- * 深色主题	false	true	true	false
- * 图片头部沉浸	false	false	true	false
- * 列表页(自定义滚动)	true	true	false	false
- * 聊天输入页	true	true	true	true
- * 全屏视频/图片	false	false	false	false
- * 带底部Tab主页	true	true	false	false
+ *
+ * 使用 Google 官方推荐的 `enableEdgeToEdge()` API
+ * 支持 Android 8.0 (API 26) - Android 16 (API 36)
+ *
+ * ## 快速开始
+ *
+ * ```kotlin
+ * class MainActivity : AppCompatActivity() {
+ *     override fun onCreate(savedInstanceState: Bundle?) {
+ *         // 必须在 super.onCreate() 之前调用
+ *         EdgeToEdgeHelper.enable(this)
+ *         super.onCreate(savedInstanceState)
+ *         setContentView(R.layout.activity_main)
+ *
+ *         // 为内容区域应用 insets 适配
+ *         EdgeToEdgeHelper.applyInsets(binding.root)
+ *     }
+ * }
+ * ```
+ *
+ * ## 配置选项
+ *
+ * ```kotlin
+ * // 深色主题
+ * EdgeToEdgeHelper.enable(this, EdgeToEdgeConfig.dark())
+ *
+ * // 自动跟随系统主题
+ * EdgeToEdgeHelper.enable(this, EdgeToEdgeConfig.auto())
+ *
+ * // 沉浸式（内容延伸到系统栏下方）
+ * EdgeToEdgeHelper.enable(this, EdgeToEdgeConfig.immersive())
+ *
+ * // 自定义配置
+ * EdgeToEdgeHelper.enable(this, EdgeToEdgeConfig.Builder()
+ *     .lightStatusBar()
+ *     .darkNavigationBar()
+ *     .fitIme(true)
+ *     .build())
+ * ```
+ *
+ * @see EdgeToEdgeConfig 配置类
+ * @see SystemBarsHelper 系统栏工具类（获取高度、显示/隐藏）
+ * @since 1.0.0
  */
 object EdgeToEdgeHelper {
 
     /**
-     * 应用Edge-to-Edge配置
-     * @param activity 目标Activity
-     * @param config 配置参数
-     * @param contentView 需要适配的内容View（可选，默认为DecorView的content）
+     * 启用 Edge-to-Edge 模式
+     *
+     * ⚠️ **必须在 `super.onCreate()` 之前调用**
+     *
+     * 此方法会：
+     * 1. 设置系统栏透明
+     * 2. 允许内容绘制到系统栏区域
+     * 3. 根据配置设置系统栏图标颜色
+     *
+     * @param activity AppCompatActivity 实例
+     * @param config Edge-to-Edge 配置，默认为亮色主题
+     *
+     * ### 使用示例
+     * ```kotlin
+     * override fun onCreate(savedInstanceState: Bundle?) {
+     *     EdgeToEdgeHelper.enable(this)  // 默认配置
+     *     // 或自定义配置
+     *     EdgeToEdgeHelper.enable(this, EdgeToEdgeConfig.dark())
+     *
+     *     super.onCreate(savedInstanceState)
+     *     setContentView(R.layout.activity_main)
+     * }
+     * ```
      */
-    fun apply(
-        activity: Activity,
-        config: EdgeToEdgeConfig = EdgeToEdgeConfig.default(),
-        contentView: View? = null
+    @JvmStatic
+    @JvmOverloads
+    fun enable(
+        activity: AppCompatActivity,
+        config: EdgeToEdgeConfig = EdgeToEdgeConfig.default()
     ) {
-        if (!config.isEnabled) return
-        applyWindow(activity, config)
-        val targetView = contentView ?: activity.findViewById(android.R.id.content)
-        applyInsets(targetView, config)
-    }
-
-    /**
-     * 仅配置 Window 属性
-     * - 透明状态栏/导航栏
-     * - 系统栏颜色
-     * - 图标颜色
-     * - 刘海屏
-     */
-    fun applyWindow(activity: Activity, config: EdgeToEdgeConfig) {
-        if (!config.isEnabled) return
-
-        // 1. 启用 Edge-to-Edge
-        WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-
-        // 2. 设置系统栏颜色
-        applySystemBarColors(activity, config)
-
-        // 3. 设置系统栏图标颜色
-        applySystemBarAppearance(activity, config)
-
-        // 4. 处理刘海屏
-        if (config.fitDisplayCutout) {
-            applyDisplayCutout(activity)
-        }
-    }
-
-    /**
-     * 仅配置 View 的 Insets
-     * - 处理 padding/margin 避免重叠
-     */
-    fun applyInsets(view: View, config: EdgeToEdgeConfig) {
-        if (!config.isEnabled) return
-        if (!config.fitStatusBar && !config.fitNavigationBar && !config.fitIme) return
-
-        WindowInsetsHelper.applyPaddingInsets(
-            view = view,
-            config = config,
-            applyTop = config.fitStatusBar,
-            applyBottom = config.fitNavigationBar || config.fitIme
-        )
-    }
-    /**
-     * 启用Edge-to-Edge模式
-     */
-    private fun enableEdgeToEdge(activity: Activity, config: EdgeToEdgeConfig) {
-        // Android 15+ (API 35) 默认启用Edge-to-Edge
-        if (Build.VERSION.SDK_INT >= 35) {
-            // 系统自动启用，只需配置外观
-            return
-        }
-
-        // 使用AndroidX库的方式（推荐）
-        if (activity is ComponentActivity) {
-            try {
-                activity.enableEdgeToEdge()
-                return
-            } catch (e: Exception) {
-                // 降级处理
-            }
-        }
-
-        // 手动设置（兼容非ComponentActivity）
-        val window = activity.window
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+
-            window.setDecorFitsSystemWindows(false)
-        } else {
-            // Android 8-10
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            )
-        }
-
-        // 使用WindowCompat确保兼容性
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-    }
-
-    /**
-     * 设置系统栏颜色
-     */
-    private fun applySystemBarColors(activity: Activity, config: EdgeToEdgeConfig) {
-        val window = activity.window
-
-        // 状态栏颜色
-        window.statusBarColor = if (config.isStatusBarTransparent) {
-            Color.TRANSPARENT
-        } else {
-            config.statusBarColor
-        }
-
-        // 导航栏颜色
-        window.navigationBarColor = if (config.isNavigationBarTransparent) {
-            Color.TRANSPARENT
-        } else {
-            config.navigationBarColor
-        }
-
-        // Android 10+ 移除导航栏分隔线
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
-
-        // Android 8.1+ 导航栏背景颜色
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            if (config.isNavigationBarTransparent) {
-                window.navigationBarColor = Color.TRANSPARENT
-            }
-        }
-    }
-
-    /**
-     * 设置系统栏外观（图标颜色）
-     */
-    private fun applySystemBarAppearance(activity: Activity, config: EdgeToEdgeConfig) {
-        val windowInsetsController = WindowCompat.getInsetsController(
-            activity.window,
-            activity.window.decorView
+        // 使用 Google 官方 API
+        activity.enableEdgeToEdge(
+            statusBarStyle = config.toStatusBarSystemStyle(),
+            navigationBarStyle = config.toNavigationBarSystemStyle()
         )
 
-        // 状态栏图标颜色
-        windowInsetsController.isAppearanceLightStatusBars = config.isLightStatusBar
-
-        // 导航栏图标颜色（Android 8.0+）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            windowInsetsController.isAppearanceLightNavigationBars = config.isLightNavigationBar
-        }
-    }
-
-    /**
-     * 处理刘海屏适配
-     */
-    private fun applyDisplayCutout(activity: Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // 处理刘海屏
+        if (config.fitDisplayCutout && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             activity.window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
     }
 
     /**
-     * 处理WindowInsets
+     * 为 View 应用系统栏 Insets
+     *
+     * 根据配置自动为 View 添加适当的 padding，避免内容被系统栏遮挡
+     *
+     * @param view 需要适配的 View（通常是根布局）
+     * @param config Edge-to-Edge 配置
+     *
+     * ### 使用示例
+     * ```kotlin
+     * // 应用默认配置（适配状态栏和导航栏）
+     * EdgeToEdgeHelper.applyInsets(binding.root)
+     *
+     * // 仅适配状态栏
+     * EdgeToEdgeHelper.applyInsets(binding.root,
+     *     EdgeToEdgeConfig(fitStatusBar = true, fitNavigationBar = false))
+     *
+     * // 适配软键盘
+     * EdgeToEdgeHelper.applyInsets(binding.root, EdgeToEdgeConfig.withIme())
+     * ```
      */
-    private fun applyWindowInsets(view: View, config: EdgeToEdgeConfig) {
-        // 处理配置中指定的padding view
-        config.paddingView?.let {
-            WindowInsetsHelper.applyPaddingInsets(it, config)
+    @JvmStatic
+    @JvmOverloads
+    fun applyInsets(
+        view: View,
+        config: EdgeToEdgeConfig = EdgeToEdgeConfig.default()
+    ) {
+        // 保存原始 padding
+        val initialPadding = InitialPadding(
+            view.paddingLeft,
+            view.paddingTop,
+            view.paddingRight,
+            view.paddingBottom
+        )
+
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insetTypes = buildInsetTypes(config)
+            val insets = windowInsets.getInsets(insetTypes)
+
+            v.updatePadding(
+                left = initialPadding.left + insets.left,
+                top = if (config.fitStatusBar) initialPadding.top + insets.top else initialPadding.top,
+                right = initialPadding.right + insets.right,
+                bottom = if (config.fitNavigationBar || config.fitIme) {
+                    initialPadding.bottom + insets.bottom
+                } else {
+                    initialPadding.bottom
+                }
+            )
+
+            // 返回 insets，让子 View 也能处理
+            windowInsets
         }
 
-        // 处理配置中指定的margin view
-        config.marginView?.let {
-            WindowInsetsHelper.applyMarginInsets(it, config)
-        }
-
-        // 如果没有指定特定view，且需要适配，则对content view处理
-        if (config.paddingView == null && config.marginView == null) {
-            if (config.fitStatusBar || config.fitNavigationBar) {
-                WindowInsetsHelper.applyPaddingInsets(view, config)
-            }
-        }
+        requestApplyInsetsWhenAttached(view)
     }
 
     /**
-     * 获取状态栏高度
+     * 为 View 仅应用状态栏 Insets
+     *
+     * 仅在 View 顶部添加状态栏高度的 padding
+     *
+     * @param view 需要适配的 View
      */
-    fun getStatusBarHeight(activity: Activity): Int {
-        val windowInsets = ViewCompat.getRootWindowInsets(activity.window.decorView)
-        return windowInsets?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
+    @JvmStatic
+    fun applyStatusBarInsets(view: View) {
+        applyInsets(view, EdgeToEdgeConfig(fitStatusBar = true, fitNavigationBar = false))
     }
 
     /**
-     * 获取导航栏高度
+     * 为 View 仅应用导航栏 Insets
+     *
+     * 仅在 View 底部添加导航栏高度的 padding
+     *
+     * @param view 需要适配的 View
      */
-    fun getNavigationBarHeight(activity: Activity): Int {
-        val windowInsets = ViewCompat.getRootWindowInsets(activity.window.decorView)
-        return windowInsets?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
+    @JvmStatic
+    fun applyNavigationBarInsets(view: View) {
+        applyInsets(view, EdgeToEdgeConfig(fitStatusBar = false, fitNavigationBar = true))
     }
 
     /**
-     * 隐藏系统栏
+     * 为 View 应用 IME (软键盘) Insets
+     *
+     * 当软键盘弹出时，自动为 View 底部添加 padding
+     * 适用于输入页面，避免输入框被键盘遮挡
+     *
+     * @param view 需要适配的 View
+     *
+     * ### 使用示例
+     * ```kotlin
+     * // 为包含 EditText 的布局应用 IME 适配
+     * EdgeToEdgeHelper.applyImeInsets(binding.scrollView)
+     * ```
      */
-    fun hideSystemBars(activity: Activity, hideStatusBar: Boolean = true, hideNavBar: Boolean = true) {
-        val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
-        
+    @JvmStatic
+    fun applyImeInsets(view: View) {
+        val initialPaddingBottom = view.paddingBottom
+
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            val navInsets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            // 取 IME 和导航栏的较大值
+            val bottomPadding = maxOf(imeInsets.bottom, navInsets.bottom)
+            v.updatePadding(bottom = initialPaddingBottom + bottomPadding)
+
+            windowInsets
+        }
+
+        requestApplyInsetsWhenAttached(view)
+    }
+
+    /**
+     * 智能应用导航栏 Insets
+     *
+     * 仅在非手势导航模式下应用导航栏 padding
+     * 手势导航模式下不添加 padding，最大化屏幕利用率
+     *
+     * @param view 需要适配的 View
+     * @return true=已应用（非手势导航），false=未应用（手势导航）
+     *
+     * ### 使用示例
+     * ```kotlin
+     * // 底部有按钮的布局
+     * EdgeToEdgeHelper.applyNavigationBarInsetsIfNeeded(binding.bottomButtonContainer)
+     * ```
+     *
+     * @see NavigationBarUtils.isGestureNavigation 判断是否为手势导航
+     */
+    @JvmStatic
+    fun applyNavigationBarInsetsIfNeeded(view: View): Boolean {
+        return SystemBarsHelper.applyNavigationBarPaddingIfNeeded(view)
+    }
+
+    // ==================== 私有方法 ====================
+
+    private fun buildInsetTypes(config: EdgeToEdgeConfig): Int {
         var types = 0
-        if (hideStatusBar) types = types or WindowInsetsCompat.Type.statusBars()
-        if (hideNavBar) types = types or WindowInsetsCompat.Type.navigationBars()
-        
-        controller.hide(types)
-        controller.systemBarsBehavior = 
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (config.fitStatusBar) {
+            types = types or WindowInsetsCompat.Type.statusBars()
+        }
+        if (config.fitNavigationBar) {
+            types = types or WindowInsetsCompat.Type.navigationBars()
+        }
+        if (config.fitIme) {
+            types = types or WindowInsetsCompat.Type.ime()
+        }
+        if (config.fitDisplayCutout) {
+            types = types or WindowInsetsCompat.Type.displayCutout()
+        }
+        return types
     }
 
-    /**
-     * 显示系统栏
-     */
-    fun showSystemBars(activity: Activity) {
-        val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
-        controller.show(WindowInsetsCompat.Type.systemBars())
+    private fun requestApplyInsetsWhenAttached(view: View) {
+        if (view.isAttachedToWindow) {
+            ViewCompat.requestApplyInsets(view)
+        } else {
+            view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    ViewCompat.requestApplyInsets(v)
+                    v.removeOnAttachStateChangeListener(this)
+                }
+                override fun onViewDetachedFromWindow(v: View) {}
+            })
+        }
     }
+
+    private data class InitialPadding(
+        val left: Int,
+        val top: Int,
+        val right: Int,
+        val bottom: Int
+    )
 }

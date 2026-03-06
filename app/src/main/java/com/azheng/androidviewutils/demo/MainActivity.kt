@@ -1,19 +1,12 @@
 package com.azheng.androidviewutils.demo
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
+import com.azheng.androidviewutils.demo.edgedemo.EdgeDemoListActivity
 import com.azheng.viewutils.edge.BaseEdgeActivity
-import com.azheng.viewutils.imagepicker.ImagePicker
-import com.azheng.viewutils.imagepicker.ImagePickerResult
 import com.azheng.viewutils.imageviewer.ImageViewer
 import dev.androidbroadcast.vbpd.viewBinding
-import kotlinx.coroutines.launch
 
 
 class MainActivity : BaseEdgeActivity() {
@@ -32,6 +25,11 @@ class MainActivity : BaseEdgeActivity() {
             val intent = Intent(this, ImagePickerDemoActivity::class.java)
             startActivity(intent)
         }
+        viewBinding.btnEdgeDemo.setOnClickListener {
+            startActivity(Intent(this, EdgeDemoListActivity::class.java))
+        }
+
+
     }
 
 
