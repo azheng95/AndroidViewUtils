@@ -39,7 +39,7 @@ afterEvaluate {
 
                 groupId = findProperty('group') ?: 'com.github.azheng95'
                 artifactId = 'AndroidViewUtils'
-                version = findProperty('version') ?: '1.0.0'
+                version = '0.0.8'
             }
         }
     }
