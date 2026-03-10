@@ -2,9 +2,11 @@ package com.azheng.viewutils.edge
 
 import android.app.Activity
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 
@@ -111,7 +113,7 @@ fun Fragment.applyEdgeToEdgeInsets(
     view?.let { EdgeToEdgeHelper.applyInsets(it, config) }
 }
 
-// ==================== View 扩展函数 ====================
+// ==================== View Padding 扩展函数 ====================
 
 /**
  * 应用系统栏 Padding（状态栏 + 导航栏）
@@ -241,8 +243,217 @@ fun View.matchNavigationBarHeight() {
     requestApplyInsetsCompat()
 }
 
+// ==================== View Margin 扩展函数 ====================
+
+/**
+ * 应用系统栏 Margin（状态栏 + 导航栏）
+ *
+ * 自动在 View 的上下左右添加系统栏高度的 margin
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.contentCard.applySystemBarsMargin()
+ * ```
+ */
+fun View.applySystemBarsMargin() {
+    val initialMargin = getInitialMargin()
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            leftMargin = initialMargin[0] + systemBars.left
+            topMargin = initialMargin[1] + systemBars.top
+            rightMargin = initialMargin[2] + systemBars.right
+            bottomMargin = initialMargin[3] + systemBars.bottom
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
+/**
+ * 仅应用状态栏 Margin
+ *
+ * 在 View 顶部添加状态栏高度的 margin
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.toolbar.applyStatusBarMargin()
+ * ```
+ */
+fun View.applyStatusBarMargin() {
+    val initialMarginTop = (layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin ?: 0
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = initialMarginTop + statusBarHeight
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
+/**
+ * 仅应用导航栏 Margin
+ *
+ * 在 View 底部添加导航栏高度的 margin
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.fab.applyNavigationBarMargin()
+ * ```
+ */
+fun View.applyNavigationBarMargin() {
+    val initialMarginBottom = (layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            bottomMargin = initialMarginBottom + navBarHeight
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
+/**
+ * 智能应用导航栏 Margin
+ *
+ * 仅在非手势导航模式下应用导航栏 margin
+ * 手势导航模式下不添加 margin，最大化屏幕利用率
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * @return true=已应用（非手势导航），false=未应用（手势导航）
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.fab.applyNavigationBarMarginIfNeeded()
+ * ```
+ */
+fun View.applyNavigationBarMarginIfNeeded(): Boolean {
+    return SystemBarsHelper.applyNavigationBarMarginIfNeeded(this)
+}
+
+/**
+ * 智能应用系统栏 Margin
+ *
+ * - 状态栏：始终应用（可配置）
+ * - 导航栏：仅在非手势导航模式下应用
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * @param applyStatusBar 是否应用状态栏 margin，默认 true
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.contentCard.applySystemBarsMarginSmartly()
+ * ```
+ */
+fun View.applySystemBarsMarginSmartly(applyStatusBar: Boolean = true) {
+    SystemBarsHelper.applySystemBarsMarginSmartly(this, applyStatusBar)
+}
+
+/**
+ * 应用 IME（软键盘）Margin
+ *
+ * 当软键盘弹出时，自动在 View 底部添加 margin
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.sendButton.applyImeMargin()
+ * ```
+ */
+fun View.applyImeMargin() {
+    val initialMarginBottom = (layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+        val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+        val bottomMargin = maxOf(imeInsets.bottom, navInsets.bottom)
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            this.bottomMargin = initialMarginBottom + bottomMargin
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
+/**
+ * 设置 View 的顶部 Margin 等于状态栏高度
+ *
+ * 适用于需要在状态栏下方添加间距的 View
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.headerCard.matchStatusBarHeightAsMargin()
+ * ```
+ */
+fun View.matchStatusBarHeightAsMargin() {
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = statusBarHeight
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
+/**
+ * 设置 View 的底部 Margin 等于导航栏高度
+ *
+ * 适用于需要在导航栏上方添加间距的 View（如 FAB）
+ *
+ * ⚠️ 注意：View 的 LayoutParams 必须是 ViewGroup.MarginLayoutParams 的子类
+ *
+ * ### 使用示例
+ * ```kotlin
+ * binding.fab.matchNavigationBarHeightAsMargin()
+ * ```
+ */
+fun View.matchNavigationBarHeightAsMargin() {
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            bottomMargin = navBarHeight
+        }
+        insets
+    }
+    requestApplyInsetsCompat()
+}
+
 // ==================== 私有辅助函数 ====================
 
+/**
+ * 获取 View 的初始 Margin 值
+ *
+ * @return IntArray [leftMargin, topMargin, rightMargin, bottomMargin]
+ */
+private fun View.getInitialMargin(): IntArray {
+    val lp = layoutParams as? ViewGroup.MarginLayoutParams
+    return intArrayOf(
+        lp?.leftMargin ?: 0,
+        lp?.topMargin ?: 0,
+        lp?.rightMargin ?: 0,
+        lp?.bottomMargin ?: 0
+    )
+}
+
+/**
+ * 请求应用 WindowInsets（兼容 View 未 attach 的情况）
+ */
 private fun View.requestApplyInsetsCompat() {
     if (isAttachedToWindow) {
         ViewCompat.requestApplyInsets(this)

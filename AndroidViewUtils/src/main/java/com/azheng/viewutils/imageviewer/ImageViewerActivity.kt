@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 
@@ -49,6 +50,11 @@ class ImageViewerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                dismissViewer()
+            }
+        })
 
         // 全屏显示
         setupFullScreen()
@@ -175,11 +181,6 @@ class ImageViewerActivity : AppCompatActivity() {
         globalCallback?.onDismiss()
         finish()
         overridePendingTransition(0, exitAnim)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        dismissViewer()
     }
 
     override fun finish() {

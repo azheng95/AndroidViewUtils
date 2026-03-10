@@ -30,20 +30,7 @@ android {
         jvmTarget = '11'
     }
 }
-// ========== 添加以下发布配置 ==========
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
 
-                groupId = findProperty('group') ?: 'com.github.azheng95'
-                artifactId = 'AndroidViewUtils'
-                version = '0.0.8'
-            }
-        }
-    }
-}
 
 dependencies {
 

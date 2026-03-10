@@ -1,5 +1,6 @@
 package com.azheng.androidviewutils.demo.edgedemo
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import com.azheng.androidviewutils.demo.databinding.ActivityBaseActivityDemoBinding
@@ -15,6 +16,7 @@ class BaseActivityDemoActivity : BaseEdgeActivity() {
 
     private lateinit var binding: ActivityBaseActivityDemoBinding
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityBaseActivityDemoBinding.inflate(layoutInflater)

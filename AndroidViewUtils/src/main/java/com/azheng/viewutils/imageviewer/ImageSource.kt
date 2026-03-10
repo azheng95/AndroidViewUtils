@@ -1,6 +1,5 @@
 package com.azheng.viewutils.imageviewer
 
-import android.content.Context
 import android.net.Uri
 import java.io.File
 import java.io.Serializable
