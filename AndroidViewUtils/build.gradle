@@ -37,13 +37,14 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
 
-                groupId = 'com.github.azheng95'
+                groupId = findProperty('group') ?: 'com.github.azheng95'
                 artifactId = 'AndroidViewUtils'
-                version = '0.0.7'
+                version = findProperty('version') ?: '1.0.0'
             }
         }
     }
 }
+
 dependencies {
 
     compileOnly libs.androidx.core.ktx
