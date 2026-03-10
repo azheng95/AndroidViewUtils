@@ -4,8 +4,8 @@ import androidx.annotation.ColorInt
 import java.io.Serializable
 
 data class ViewerConfig(
-    // 图片数据
-    val imageUrls: List<String> = emptyList(),
+    // 图片数据 - 支持多种类型
+    val imageSources: List<ImageSource> = emptyList(),
     val startPosition: Int = 0,
 
     // UI配置
@@ -21,10 +21,30 @@ data class ViewerConfig(
     // 动画配置
     val animDuration: Long = 300L,
     val enablePageTransformer: Boolean = false,
-    val enterAnim: Int = android.R.anim.fade_in,      // 进入动画
-    val exitAnim: Int = android.R.anim.fade_out,      // 退出动画
-    val useActivityOptions: Boolean = true            // 是否使用 ActivityOptions
+    val enterAnim: Int = android.R.anim.fade_in,
+    val exitAnim: Int = android.R.anim.fade_out,
+    val useActivityOptions: Boolean = true
 ) : Serializable {
+
+    /**
+     * 兼容性属性：获取图片URL字符串列表
+     */
+    val imageUrls: List<String>
+        get() = imageSources.map { it.toDisplayString() }
+
+    /**
+     * 获取指定位置的图片源
+     */
+    fun getImageSource(position: Int): ImageSource? {
+        return imageSources.getOrNull(position)
+    }
+
+    /**
+     * 获取图片数量
+     */
+    val imageCount: Int
+        get() = imageSources.size
+
     companion object {
         private const val serialVersionUID = 1L
     }
@@ -33,5 +53,9 @@ data class ViewerConfig(
 enum class IndicatorStyle : Serializable {
     TEXT,
     DOT,
-    NONE
+    NONE;
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

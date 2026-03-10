@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#673AB7"
+        android:padding="16dp"
+        android:text="BaseEdgeActivity 示例"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="继承 BaseEdgeActivity 的优势"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:layout_marginTop="8dp"
+                android:text="• 自动启用 Edge-to-Edge\n• 自动应用系统栏 Insets\n• 通过重写方法自定义行为\n• 无需在每个 Activity 重复代码"
+                android:lineSpacingExtra="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="可重写的方法"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:background="#EDE7F6"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:text="// 是否启用 Edge-to-Edge（默认 true）\noverride fun isEdgeToEdgeEnabled() = true\n\n// 是否需要适配系统栏（默认 true）\noverride fun needAdaptSystemBar() = true\n\n// 获取自定义 Insets 目标 View\noverride fun getInsetsTargetView() = binding.root\n\n// 获取自定义配置\noverride fun getEdgeToEdgeConfig() = \n    EdgeToEdgeConfig.dark()"
+                android:textSize="11sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:textColor="@color/black"
+                android:text="最简使用"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:background="#EDE7F6"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:text="class MyActivity : BaseEdgeActivity() {\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        setContentView(R.layout.activity_my)\n        // Edge-to-Edge 已自动配置完成！\n    }\n}"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvCurrentSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="#D1C4E9"
+                android:textColor="@color/black"
+                android:padding="16dp"
+                android:text="当前页面设置" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

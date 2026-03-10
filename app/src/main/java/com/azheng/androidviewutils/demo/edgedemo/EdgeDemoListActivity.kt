@@ -7,7 +7,7 @@ import com.azheng.viewutils.edge.BaseEdgeActivity
 
 /**
  * Edge-to-Edge Demo 列表入口页面
- * 
+ *
  * 用于跳转到各个示例 Activity
  */
 class EdgeDemoListActivity : BaseEdgeActivity() {
@@ -19,31 +19,54 @@ class EdgeDemoListActivity : BaseEdgeActivity() {
         binding = ActivityEdgeDemoListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 应用 Insets 适配
-        applyInsets(binding.root)
-
         setupClickListeners()
     }
 
     private fun setupClickListeners() {
-        // 完整功能演示
-        binding.btnDemoEdge.setOnClickListener {
-            startActivity(Intent(this, DemoEdgeActivity::class.java))
-        }
+        with(binding) {
+            // 基础示例
+            btnBasicDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, BasicEdgeActivity::class.java))
+            }
 
-        // 简单用法示例
-        binding.btnSimpleDemo.setOnClickListener {
-            startActivity(Intent(this, SimpleDemoActivity::class.java))
-        }
+            btnDarkThemeDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, DarkThemeEdgeActivity::class.java))
+            }
 
-        // 扩展函数用法示例
-        binding.btnExtensionDemo.setOnClickListener {
-            startActivity(Intent(this, ExtensionDemoActivity::class.java))
-        }
+            btnAutoThemeDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, AutoThemeEdgeActivity::class.java))
+            }
 
-        // 沉浸式全屏示例
-        binding.btnImmersiveDemo.setOnClickListener {
-            startActivity(Intent(this, ImmersiveDemoActivity::class.java))
+            // 高级示例
+            btnImmersiveDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, ImmersiveEdgeActivity::class.java))
+            }
+
+            btnImeDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, ImeEdgeActivity::class.java))
+            }
+
+            btnCustomConfigDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, CustomConfigEdgeActivity::class.java))
+            }
+
+            // 工具类示例
+            btnExtensionDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, ExtensionDemoActivity::class.java))
+            }
+
+            btnSystemBarsDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, SystemBarsHelperActivity::class.java))
+            }
+
+            btnNavigationModeDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, NavigationModeActivity::class.java))
+            }
+
+            // BaseEdgeActivity 示例
+            btnBaseActivityDemo.setOnClickListener {
+                startActivity(Intent(this@EdgeDemoListActivity, BaseActivityDemoActivity::class.java))
+            }
         }
     }
 }

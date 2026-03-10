@@ -1,43 +1,64 @@
 package com.azheng.androidviewutils.demo
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
 import com.azheng.androidviewutils.demo.edgedemo.EdgeDemoListActivity
 import com.azheng.viewutils.edge.BaseEdgeActivity
+import com.azheng.viewutils.imagepicker.ImagePicker
+import com.azheng.viewutils.imagepicker.MediaType
 import com.azheng.viewutils.imageviewer.ImageViewer
-import dev.androidbroadcast.vbpd.viewBinding
+import com.azheng.viewutils.setImageUrl
 
 
 class MainActivity : BaseEdgeActivity() {
 
-    private val viewBinding: ActivityMainBinding by viewBinding(ActivityMainBinding::bind)
+    private lateinit var binding: ActivityMainBinding
+
     private val TAG = "MainActivity"
+
+    private var imageUrl: Uri? = null
+    override fun needAdaptSystemBar(): Boolean {
+        return true
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        viewBinding.tvTestView.setOnClickListener {
-            setImageViewer()
+        binding.btnSelectImageView.setOnClickListener {
+            ImagePicker.pickMedia(
+                context = this,
+                maxCount = 1,
+                mediaType = MediaType.IMAGE_ONLY
+            ) { result ->
+                imageUrl = result.getUrisOrEmpty().getOrNull(0)
+                binding.ivImage.setImageUrl(imageUrl)
+            }
         }
-        viewBinding.btnSelectImage.setOnClickListener {
+        binding.btnSelectImage.setOnClickListener {
             val intent = Intent(this, ImagePickerDemoActivity::class.java)
             startActivity(intent)
         }
-        viewBinding.btnEdgeDemo.setOnClickListener {
+        binding.btnEdgeDemo.setOnClickListener {
             startActivity(Intent(this, EdgeDemoListActivity::class.java))
         }
-
+        binding.ivImage.setOnClickListener {
+            setImageViewer()
+        }
 
     }
 
 
     private fun setImageViewer() {
-        ImageViewer.with(this)
-            .setImages(mutableListOf<String>("https:/d2aag0s7ngp5r1.cloudfront.net/rock2/img/Bloodstone tumbled_3_676.jpg"))
-            .showIndicator(false)  // ← 隐藏指示器
-            .show()
+        imageUrl?.let {
+            ImageViewer.with(this)
+                .setImage(it)
+                .showIndicator(false)  // ← 隐藏指示器
+                .show()
+        }
 
     }
 

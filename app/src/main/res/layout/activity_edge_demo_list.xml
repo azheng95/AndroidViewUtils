@@ -1,371 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/root"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@android:color/white">
+    android:fillViewport="true"
+    tools:context=".edgedemo.EdgeDemoListActivity">
 
-    <!-- Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#6200EE"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:text="Edge-to-Edge Demo"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Edge-to-Edge 示例"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
-    </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="点击下方按钮查看各种 Edge-to-Edge 配置效果"
+            android:textColor="#666666" />
 
-    <!-- 内容区域 -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        <!-- 基础示例 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="基础配置"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#999999" />
 
-        <LinearLayout
+        <Button
+            android:id="@+id/btnBasicDemo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="8dp"
+            android:text="基础示例 (默认配置)" />
 
-            <!-- 标题 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="📱 选择示例"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+        <Button
+            android:id="@+id/btnDarkThemeDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="深色主题示例" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:text="点击下方卡片查看不同的 Edge-to-Edge 用法"
-                android:textColor="#666666"
-                android:textSize="14sp" />
+        <Button
+            android:id="@+id/btnAutoThemeDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="自动主题示例 (跟随系统)" />
 
-            <!-- Demo 1: 完整功能演示 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnDemoEdge"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+        <!-- 高级示例 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="高级配置"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#999999" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+        <Button
+            android:id="@+id/btnImmersiveDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="沉浸式示例 (内容延伸到系统栏)" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+        <Button
+            android:id="@+id/btnImeDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="软键盘适配示例" />
 
-                        <TextView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:gravity="center"
-                            android:text="🎮"
-                            android:textSize="24sp"
-                            android:background="#E8EAF6" />
+        <Button
+            android:id="@+id/btnCustomConfigDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="自定义配置示例" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:orientation="vertical">
+        <!-- 工具类示例 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="工具类"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#999999" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="完整功能演示"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+        <Button
+            android:id="@+id/btnExtensionDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="扩展函数示例" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="DemoEdgeActivity"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
+        <Button
+            android:id="@+id/btnSystemBarsDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="系统栏工具示例 (显示/隐藏)" />
 
-                        </LinearLayout>
+        <Button
+            android:id="@+id/btnNavigationModeDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="导航栏模式检测" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="→"
-                            android:textSize="18sp"
-                            android:textColor="#999999" />
+        <!-- 使用 BaseEdgeActivity -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="继承 BaseEdgeActivity"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#999999" />
 
-                    </LinearLayout>
+        <Button
+            android:id="@+id/btnBaseActivityDemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="BaseEdgeActivity 使用示例" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="展示所有功能：系统栏控制、高度获取、导航模式检测、Insets 适配等"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Demo 2: 简单用法 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnSimpleDemo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:gravity="center"
-                            android:text="✨"
-                            android:textSize="24sp"
-                            android:background="#E8F5E9" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="简单用法示例"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="SimpleDemoActivity"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="→"
-                            android:textSize="18sp"
-                            android:textColor="#999999" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="最基础的用法：继承 BaseEdgeActivity + applyInsets()"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Demo 3: 扩展函数用法 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnExtensionDemo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:gravity="center"
-                            android:text="🔌"
-                            android:textSize="24sp"
-                            android:background="#E0F7FA" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="扩展函数用法"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="ExtensionDemoActivity"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="→"
-                            android:textSize="18sp"
-                            android:textColor="#999999" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="不继承 BaseEdgeActivity，直接使用 Kotlin 扩展函数"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- Demo 4: 沉浸式全屏 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnImmersiveDemo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:gravity="center"
-                            android:text="🎬"
-                            android:textSize="24sp"
-                            android:background="#FBE9E7" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="沉浸式全屏"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="ImmersiveDemoActivity"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="→"
-                            android:textSize="18sp"
-                            android:textColor="#999999" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="适用于视频播放、图片查看、游戏等场景的沉浸式体验"
-                        android:textColor="#666666"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="4dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-
-    </ScrollView>
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

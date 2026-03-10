@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/root"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:background="#FFFFFF">
 
-    <!-- Toolbar -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <TextView
+        android:id="@+id/tvToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#03DAC5"
-        android:minHeight="56dp"
-        app:title="Extension Demo"
-        app:titleTextColor="@android:color/white" />
+        android:background="#9C27B0"
+        android:padding="16dp"
+        android:text="扩展函数示例"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
-    <!-- 内容区域 -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -33,98 +31,79 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="🔌 扩展函数用法示例"
-                android:textSize="20sp"
+                android:text="Activity 扩展函数"
+                android:textSize="18sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:background="#F3E5F5"
+                android:textColor="@color/black"
+                android:padding="12dp"
+                android:text="// 启用 Edge-to-Edge\nenableEdgeToEdge()\nenableEdgeToEdge(EdgeToEdgeConfig.dark())\n\n// DSL 方式\nenableEdgeToEdge {\n    lightStatusBar()\n    darkNavigationBar()\n    fitIme(true)\n}\n\n// 获取系统栏高度\nval statusHeight = getStatusBarHeight()\nval navHeight = getNavigationBarHeight()\n\n// 隐藏/显示系统栏\nhideSystemBars()\nshowSystemBars()"
+                android:textSize="11sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="不继承 BaseEdgeActivity，直接使用扩展函数"
-                android:textColor="#666666"
-                android:textSize="14sp" />
-
-            <!-- 信息卡片 -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <TextView
-                    android:id="@+id/tvInfo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:fontFamily="monospace"
-                    android:lineSpacingExtra="4dp"
-                    android:textSize="13sp" />
-
-            </androidx.cardview.widget.CardView>
-
-            <!-- 控制按钮 -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="系统栏控制"
-                android:textSize="16sp"
+                android:layout_marginTop="24dp"
+                android:text="View 扩展函数"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:textColor="@color/black"
+                android:background="#F3E5F5"
+                android:padding="12dp"
+                android:text="// 应用系统栏 Padding\nview.applySystemBarsPadding()\nview.applyStatusBarPadding()\nview.applyNavigationBarPadding()\n\n// 智能应用（仅非手势导航）\nview.applyNavigationBarPaddingIfNeeded()\nview.applySystemBarsPaddingSmartly()\n\n// IME 适配\nview.applyImePadding()\n\n// 匹配系统栏高度\nview.matchStatusBarHeight()\nview.matchNavigationBarHeight()"
+                android:textSize="11sp" />
 
-                <Button
-                    android:id="@+id/btnHide"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="隐藏系统栏"
-                    android:textAllCaps="false" />
-
-                <Button
-                    android:id="@+id/btnShow"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="显示系统栏"
-                    android:textAllCaps="false" />
-
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvSystemInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="#E1BEE7"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:text="系统栏信息加载中..."
+                android:lineSpacingExtra="4dp" />
 
         </LinearLayout>
-
     </ScrollView>
 
-    <!-- 底部区域 -->
     <LinearLayout
-        android:id="@+id/bottomContainer"
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#E8F5E9"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="此区域使用 applyNavigationBarPaddingIfNeeded()"
-            android:textColor="#666666"
-            android:textSize="12sp" />
+        android:background="#F5F5F5"
+        android:padding="16dp"
+        android:orientation="horizontal">
 
         <Button
-            android:layout_width="match_parent"
+            android:id="@+id/btnHide"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:backgroundTint="#4CAF50"
-            android:text="底部操作"
-            android:textAllCaps="false" />
+            android:layout_weight="1"
+            android:text="隐藏系统栏" />
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="0dp" />
+
+        <Button
+            android:id="@+id/btnShow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="显示系统栏" />
 
     </LinearLayout>
 

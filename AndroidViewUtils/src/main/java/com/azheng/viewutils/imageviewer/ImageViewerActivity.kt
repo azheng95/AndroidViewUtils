@@ -40,7 +40,6 @@ class ImageViewerActivity : AppCompatActivity() {
                 context.startActivity(intent, options)
             } else {
                 context.startActivity(intent)
-                // 使用 overridePendingTransition 作为备选
                 if (context is android.app.Activity) {
                     context.overridePendingTransition(config.enterAnim, 0)
                 }
@@ -50,10 +49,10 @@ class ImageViewerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // 全屏显示
         setupFullScreen()
-        
+
         // 获取配置
         config = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getSerializableExtra(EXTRA_CONFIG, ViewerConfig::class.java)
@@ -64,10 +63,10 @@ class ImageViewerActivity : AppCompatActivity() {
 
         // 创建布局
         createContentView()
-        
+
         // 设置 ViewPager
         setupViewPager()
-        
+
         // 设置指示器
         setupIndicator()
     }
@@ -77,16 +76,15 @@ class ImageViewerActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
-        
-        // 隐藏导航栏
+
         window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            or View.SYSTEM_UI_FLAG_FULLSCREEN
-            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        )
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                )
     }
 
     private fun createContentView() {
@@ -151,8 +149,9 @@ class ImageViewerActivity : AppCompatActivity() {
         // 页面切换监听
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                indicator?.onPageSelected(position, config.imageUrls.size)
-                globalCallback?.onPageSelected(position, config.imageUrls[position])
+                indicator?.onPageSelected(position, config.imageCount)
+                val displayUrl = config.getImageSource(position)?.toDisplayString() ?: ""
+                globalCallback?.onPageSelected(position, displayUrl)
             }
         })
     }
@@ -163,12 +162,12 @@ class ImageViewerActivity : AppCompatActivity() {
         }
 
         indicator = customIndicator ?: DefaultIndicator(config.indicatorStyle)
-        
+
         indicator?.let { ind ->
             val indicatorView = ind.createView(this)
             rootView.addView(indicatorView)
-            ind.setTotal(config.imageUrls.size)
-            ind.onPageSelected(config.startPosition, config.imageUrls.size)
+            ind.setTotal(config.imageCount)
+            ind.onPageSelected(config.startPosition, config.imageCount)
         }
     }
 
@@ -178,6 +177,7 @@ class ImageViewerActivity : AppCompatActivity() {
         overridePendingTransition(0, exitAnim)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         dismissViewer()
     }
@@ -189,7 +189,6 @@ class ImageViewerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // 清理静态引用，防止内存泄漏
         globalCallback = null
         customIndicator = null
     }

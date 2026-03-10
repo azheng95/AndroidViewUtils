@@ -40,9 +40,12 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.github.wasabeef:glide-transformations:4.3.0")
-
+    //图片查看器
+    implementation("com.github.piasy:BigImageViewer:1.8.1")
+    implementation("com.github.piasy:GlideImageLoader:1.8.1")
+    implementation("com.github.piasy:GlideImageViewFactory:1.8.1")
+    //Markwon
     implementation("io.noties.markwon:core:4.6.2")
-    // Markwon + Glide图片加载插件（处理网络图片）
     implementation("io.noties.markwon:image-glide:4.6.2")
     implementation("io.noties.markwon:ext-strikethrough:4.6.2")
     implementation("io.noties.markwon:ext-tables:4.6.2")
@@ -54,7 +57,5 @@ dependencies {
     implementation("io.noties.markwon:simple-ext:4.6.2")
     implementation("io.noties.markwon:editor:4.6.2")
     implementation("io.noties.markwon:syntax-highlight:4.6.2")
-    implementation("com.github.piasy:BigImageViewer:1.8.1")
-    implementation("com.github.piasy:GlideImageLoader:1.8.1")
-    implementation("com.github.piasy:GlideImageViewFactory:1.8.1")
+
 ```

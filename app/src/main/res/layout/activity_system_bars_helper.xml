@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#00BCD4"
+        android:padding="16dp"
+        android:text="系统栏工具示例"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SystemBarsHelper 工具类"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="#E0F7FA"
+            android:padding="16dp"
+            android:lineSpacingExtra="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="系统栏控制"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnHideAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="隐藏所有系统栏" />
+
+        <Button
+            android:id="@+id/btnHideStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="仅隐藏状态栏" />
+
+        <Button
+            android:id="@+id/btnHideNav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="仅隐藏导航栏" />
+
+        <Button
+            android:id="@+id/btnShowAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="显示所有系统栏" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="💡 隐藏后从屏幕边缘滑动可临时显示"
+            android:textColor="#666666"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

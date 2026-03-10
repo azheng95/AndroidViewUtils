@@ -2,21 +2,21 @@ package com.azheng.viewutils.imageviewer
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.view.View
 import androidx.annotation.ColorInt
+import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityOptionsCompat
 import com.github.piasy.biv.BigImageViewer
 import com.github.piasy.biv.loader.glide.GlideImageLoader
+import java.io.File
 
 class ImageViewer private constructor() {
 
     companion object {
         private var isInitialized = false
 
-        /**
-         * 初始化，在 Application 中调用
-         */
         @JvmStatic
         fun init(application: Application) {
             if (!isInitialized) {
@@ -25,9 +25,6 @@ class ImageViewer private constructor() {
             }
         }
 
-        /**
-         * 获取 Builder
-         */
         @JvmStatic
         fun with(context: Context): Builder {
             check(isInitialized) { "ImageViewer must be initialized first. Call ImageViewer.init(application) in your Application." }
@@ -35,12 +32,9 @@ class ImageViewer private constructor() {
         }
     }
 
-    /**
-     * Builder 类
-     */
     class Builder internal constructor(private val context: Context) {
 
-        private val imageUrls = mutableListOf<String>()
+        private val imageSources = mutableListOf<ImageSource>()
         private var startPosition: Int = 0
 
         @ColorInt
@@ -58,39 +52,155 @@ class ImageViewer private constructor() {
 
         private var callback: ImageViewerCallback? = null
 
-        // 动画配置
         private var enterAnim: Int = android.R.anim.fade_in
         private var exitAnim: Int = android.R.anim.fade_out
         private var activityOptions: ActivityOptionsCompat? = null
         private var useSharedElement: Boolean = false
         private var sharedElementView: View? = null
         private var sharedElementName: String? = null
-        // ==================== 图片数据 ====================
 
-        /** 设置单张图片 */
+        // ==================== 图片数据 (String) ====================
+
+        /** 设置单张图片 (String URL/路径) */
         fun setImage(url: String) = apply {
-            imageUrls.clear()
-            imageUrls.add(url)
+            imageSources.clear()
+            imageSources.add(ImageSource.fromString(url))
         }
 
-        /** 设置多张图片 */
+        /** 设置多张图片 (String List) */
         fun setImages(urls: List<String>) = apply {
-            imageUrls.clear()
-            imageUrls.addAll(urls)
+            imageSources.clear()
+            imageSources.addAll(urls.map { ImageSource.fromString(it) })
         }
 
-        /** 设置多张图片 (vararg) */
+        /** 设置多张图片 (String vararg) */
         fun setImages(vararg urls: String) = apply {
-            imageUrls.clear()
-            imageUrls.addAll(urls)
+            imageSources.clear()
+            imageSources.addAll(urls.map { ImageSource.fromString(it) })
         }
+
+        // ==================== 图片数据 (Uri) ====================
+
+        /** 设置单张图片 (Uri) */
+        fun setImage(uri: Uri) = apply {
+            imageSources.clear()
+            imageSources.add(ImageSource.fromUri(uri))
+        }
+
+        /** 设置多张图片 (Uri List) */
+        @JvmName("setImagesUri")
+        fun setImages(uris: List<Uri>) = apply {
+            imageSources.clear()
+            imageSources.addAll(uris.map { ImageSource.fromUri(it) })
+        }
+
+        /** 设置多张图片 (Uri vararg) */
+        fun setImageUris(vararg uris: Uri) = apply {
+            imageSources.clear()
+            imageSources.addAll(uris.map { ImageSource.fromUri(it) })
+        }
+
+        // ==================== 图片数据 (File) ====================
+
+        /** 设置单张图片 (File) */
+        fun setImage(file: File) = apply {
+            imageSources.clear()
+            imageSources.add(ImageSource.fromFile(file))
+        }
+
+        /** 设置多张图片 (File List) */
+        @JvmName("setImagesFile")
+        fun setImages(files: List<File>) = apply {
+            imageSources.clear()
+            imageSources.addAll(files.map { ImageSource.fromFile(it) })
+        }
+
+        /** 设置多张图片 (File vararg) */
+        fun setImageFiles(vararg files: File) = apply {
+            imageSources.clear()
+            imageSources.addAll(files.map { ImageSource.fromFile(it) })
+        }
+
+        // ==================== 图片数据 (Resource ID) ====================
+
+        /** 设置单张图片 (Resource ID) */
+        fun setImage(@DrawableRes resId: Int) = apply {
+            imageSources.clear()
+            imageSources.add(ImageSource.fromResource(resId, context.packageName))
+        }
+
+        /** 设置多张图片 (Resource ID List) */
+        @JvmName("setImagesRes")
+        fun setImages(resIds: List<Int>) = apply {
+            imageSources.clear()
+            imageSources.addAll(resIds.map { ImageSource.fromResource(it, context.packageName) })
+        }
+
+        /** 设置多张图片 (Resource ID vararg) */
+        fun setImageResources(vararg resIds: Int) = apply {
+            imageSources.clear()
+            imageSources.addAll(resIds.map { ImageSource.fromResource(it, context.packageName) })
+        }
+
+        // ==================== 图片数据 (ImageSource) ====================
+
+        /** 设置单张图片 (ImageSource) */
+        fun setImage(source: ImageSource) = apply {
+            imageSources.clear()
+            imageSources.add(source)
+        }
+
+        /** 设置多张图片 (ImageSource List) */
+        @JvmName("setImagesSources")
+        fun setImages(sources: List<ImageSource>) = apply {
+            imageSources.clear()
+            imageSources.addAll(sources)
+        }
+
+        /** 设置多张图片 (ImageSource vararg) */
+        fun setImageSources(vararg sources: ImageSource) = apply {
+            imageSources.clear()
+            imageSources.addAll(sources)
+        }
+
+        // ==================== 混合类型支持 ====================
+
+        /** 添加单张图片 (String) */
+        fun addImage(url: String) = apply {
+            imageSources.add(ImageSource.fromString(url))
+        }
+
+        /** 添加单张图片 (Uri) */
+        fun addImage(uri: Uri) = apply {
+            imageSources.add(ImageSource.fromUri(uri))
+        }
+
+        /** 添加单张图片 (File) */
+        fun addImage(file: File) = apply {
+            imageSources.add(ImageSource.fromFile(file))
+        }
+
+        /** 添加单张图片 (Resource ID) */
+        fun addImage(@DrawableRes resId: Int) = apply {
+            imageSources.add(ImageSource.fromResource(resId, context.packageName))
+        }
+
+        /** 添加单张图片 (ImageSource) */
+        fun addImage(source: ImageSource) = apply {
+            imageSources.add(source)
+        }
+
+        /** 清除所有图片 */
+        fun clearImages() = apply {
+            imageSources.clear()
+        }
+
+        // ==================== UI 配置 ====================
 
         /** 设置起始位置 */
         fun setStartPosition(position: Int) = apply {
             this.startPosition = position
         }
-
-        // ==================== UI 配置 ====================
 
         /** 设置背景颜色 */
         fun setBackgroundColor(@ColorInt color: Int) = apply {
@@ -112,14 +222,12 @@ class ImageViewer private constructor() {
             this.customIndicator = indicator
         }
 
-        // ==================== 行为配置 ====================
-
         /** 点击图片关闭 */
         fun setClickToClose(enable: Boolean) = apply {
             this.clickToClose = enable
         }
 
-        /** 下滑关闭 (暂未实现) */
+        /** 下滑关闭 */
         fun setSwipeToDismiss(enable: Boolean) = apply {
             this.enableSwipeToDismiss = enable
         }
@@ -129,8 +237,10 @@ class ImageViewer private constructor() {
             this.enableZoom = enable
         }
 
-
-        // ==================== 动画配置 ====================
+        /** 启用页面切换动画 */
+        fun setEnablePageTransformer(enable: Boolean) = apply {
+            this.enablePageTransformer = enable
+        }
 
         /** 设置进入动画 */
         fun setEnterAnim(anim: Int) = apply {
@@ -160,28 +270,20 @@ class ImageViewer private constructor() {
             this.sharedElementName = transitionName
         }
 
-        /** 使用缩放动画（从指定 View 位置缩放） */
+        /** 使用缩放动画 */
         fun setScaleAnimation(sourceView: View) = apply {
             if (context is android.app.Activity) {
-                val location = IntArray(2)
-                sourceView.getLocationOnScreen(location)
                 this.activityOptions = ActivityOptionsCompat.makeScaleUpAnimation(
-                    sourceView,
-                    0, 0,
-                    sourceView.width,
-                    sourceView.height
+                    sourceView, 0, 0, sourceView.width, sourceView.height
                 )
             }
         }
 
-        /** 使用剪裁揭示动画（圆形展开） */
+        /** 使用剪裁揭示动画 */
         fun setClipRevealAnimation(sourceView: View) = apply {
             if (context is android.app.Activity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 this.activityOptions = ActivityOptionsCompat.makeClipRevealAnimation(
-                    sourceView,
-                    sourceView.width / 2,
-                    sourceView.height / 2,
-                    0, 0
+                    sourceView, sourceView.width / 2, sourceView.height / 2, 0, 0
                 )
             }
         }
@@ -192,24 +294,20 @@ class ImageViewer private constructor() {
             this.exitAnim = 0
         }
 
-        // ==================== 回调 ====================
-
         /** 设置回调监听 */
         fun setCallback(callback: ImageViewerCallback) = apply {
             this.callback = callback
         }
 
-        // ==================== 启动 ====================
-
         /** 显示图片浏览器 */
         fun show() {
-            if (imageUrls.isEmpty()) {
-                throw IllegalArgumentException("Image urls cannot be empty!")
+            if (imageSources.isEmpty()) {
+                throw IllegalArgumentException("Image sources cannot be empty!")
             }
 
             val config = ViewerConfig(
-                imageUrls = imageUrls.toList(),
-                startPosition = startPosition.coerceIn(0, imageUrls.size - 1),
+                imageSources = imageSources.toList(),
+                startPosition = startPosition.coerceIn(0, imageSources.size - 1),
                 backgroundColor = backgroundColor,
                 showIndicator = showIndicator,
                 indicatorStyle = indicatorStyle,
@@ -225,17 +323,13 @@ class ImageViewer private constructor() {
             ImageViewerActivity.globalCallback = callback
             ImageViewerActivity.customIndicator = customIndicator
 
-            // 构建 ActivityOptions
             val options = when {
                 activityOptions != null -> activityOptions?.toBundle()
                 useSharedElement && sharedElementView != null && context is android.app.Activity -> {
                     ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        context,
-                        sharedElementView!!,
-                        sharedElementName ?: "image_transition"
+                        context, sharedElementView!!, sharedElementName ?: "image_transition"
                     ).toBundle()
                 }
-
                 else -> null
             }
 

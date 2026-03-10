@@ -1,7 +1,7 @@
 package com.azheng.viewutils.imageviewer
 
+import android.annotation.SuppressLint
 import android.net.Uri
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -25,7 +25,7 @@ internal class ImagePagerAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val context = parent.context
-        
+
         // 动态创建布局，避免依赖 XML 资源
         val rootView = FrameLayout(context).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -59,8 +59,9 @@ internal class ImagePagerAdapter(
         return ImageViewHolder(rootView)
     }
 
-    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        val url = config.imageUrls[position]
+    override fun onBindViewHolder(holder: ImageViewHolder, @SuppressLint("RecyclerView") position: Int) {
+        val imageSource = config.imageSources[position]
+        val displayString = imageSource.toDisplayString()
 
         holder.bigImageView.apply {
             // 设置 EXIF 方向处理
@@ -95,17 +96,18 @@ internal class ImagePagerAdapter(
             // 点击事件
             if (config.clickToClose) {
                 setOnClickListener {
-                    callback?.onImageClick(position, url)
+                    callback?.onImageClick(position, displayString)
                 }
             }
 
             // 长按事件
             setOnLongClickListener {
-                callback?.onImageLongClick(position, url) ?: false
+                callback?.onImageLongClick(position, displayString) ?: false
             }
 
-            // 加载图片
-            showImage(Uri.parse(url))
+            // 根据 ImageSource 类型加载图片
+            val uri = imageSource.toUri()
+            showImage(uri)
         }
     }
 
@@ -114,5 +116,5 @@ internal class ImagePagerAdapter(
         holder.bigImageView.cancel()
     }
 
-    override fun getItemCount(): Int = config.imageUrls.size
+    override fun getItemCount(): Int = config.imageSources.size
 }
