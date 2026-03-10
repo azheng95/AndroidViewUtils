@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksps)
+    id 'maven-publish'
 }
 
 android {
@@ -29,7 +30,20 @@ android {
         jvmTarget = '18'
     }
 }
+// ========== 添加以下发布配置 ==========
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
 
+                groupId = 'com.github.azheng95'
+                artifactId = 'AndroidViewUtils'
+                version = '0.0.6'
+            }
+        }
+    }
+}
 dependencies {
 
     compileOnly libs.androidx.core.ktx
