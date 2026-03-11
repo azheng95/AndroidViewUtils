@@ -5,6 +5,8 @@ import android.net.Uri
 import android.os.Bundle
 import com.azheng.androidviewutils.demo.databinding.ActivityMainBinding
 import com.azheng.androidviewutils.demo.edgedemo.EdgeDemoListActivity
+import com.azheng.androidviewutils.demo.imagepicker.ImagePickerDemoActivity
+import com.azheng.androidviewutils.demo.sequentialanimator.SequentialAnimDemoActivity
 import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.imagepicker.ImagePicker
 import com.azheng.viewutils.imagepicker.MediaType
@@ -19,6 +21,7 @@ class MainActivity : BaseEdgeActivity() {
     private val TAG = "MainActivity"
 
     private var imageUrl: Uri? = null
+
     override fun needAdaptSystemBar(): Boolean {
         return true
     }
@@ -49,6 +52,11 @@ class MainActivity : BaseEdgeActivity() {
             setImageViewer()
         }
 
+        // ========== 新增：顺序动画示例跳转 ==========
+        binding.btnSequentialAnim.setOnClickListener {
+            // 跳转到顺序动画示例页面
+            startActivity(Intent(this, SequentialAnimDemoActivity::class.java))
+        }
     }
 
 

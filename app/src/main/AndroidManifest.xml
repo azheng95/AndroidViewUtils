@@ -26,7 +26,7 @@
         </activity>
 
         <activity
-            android:name=".ImagePickerDemoActivity"
+            android:name=".imagepicker.ImagePickerDemoActivity"
             android:exported="false"
             android:launchMode="standard"
             android:screenOrientation="portrait"
@@ -53,6 +53,12 @@
         <activity android:name=".edgedemo.SystemBarsHelperActivity" />
         <activity android:name=".edgedemo.NavigationModeActivity" />
         <activity android:name=".edgedemo.BaseActivityDemoActivity" />
+
+        <activity
+            android:name=".sequentialanimator.SequentialAnimDemoActivity"
+            android:label="Sequential Animation Demo"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="false" />
 
 
     </application>

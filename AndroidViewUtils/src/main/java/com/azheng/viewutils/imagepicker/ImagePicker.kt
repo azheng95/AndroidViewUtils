@@ -1,7 +1,6 @@
 package com.azheng.viewutils.imagepicker
 
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -51,63 +50,11 @@ object ImagePicker {
 
     // ==================== 私有属性 ====================
 
-    /** Application 实例，用于获取应用上下文 */
-    @Volatile
-    private var application: Application? = null
-
-    /** 初始化锁对象，确保线程安全 */
-    private val initLock = Any()
-
     /** 待处理的回调函数，使用弱引用避免内存泄漏 */
     private var pendingCallback: WeakReference<(ImagePickerResult) -> Unit>? = null
 
     /** 当前选择器配置 */
     private var currentConfig: ImagePickerConfig = ImagePickerConfig.default()
-
-    // ==================== 初始化方法 ====================
-
-    /**
-     * 手动初始化 ImagePicker
-     *
-     * 建议在 Application.onCreate() 中调用，但这是可选的，
-     * 如果未手动初始化，将在首次使用时自动初始化
-     *
-     * @param app Application 实例
-     */
-    @JvmStatic
-    fun init(app: Application) {
-        application = app
-    }
-
-    /**
-     * 内部自动初始化方法
-     *
-     * 供 AndroidX App Startup 库调用，实现无感知初始化
-     *
-     * @param context 上下文对象
-     */
-    internal fun autoInit(context: Context) {
-        if (application == null) {
-            application = context.applicationContext as Application
-        }
-    }
-
-    /**
-     * 确保已初始化（懒加载兜底方案）
-     *
-     * 使用双重检查锁定模式保证线程安全和性能
-     *
-     * @param context 上下文对象
-     */
-    private fun ensureInitialized(context: Context) {
-        if (application != null) return
-
-        synchronized(initLock) {
-            if (application == null) {
-                application = context.applicationContext as Application
-            }
-        }
-    }
 
     // ==================== 媒体选择 API ====================
 
@@ -283,9 +230,6 @@ object ImagePicker {
         config: ImagePickerConfig = ImagePickerConfig.default(),
         onResult: (ImagePickerResult) -> Unit
     ) {
-        // 确保已初始化
-        ensureInitialized(context)
-
         // 前置检查：是否已达到最大限制
         if (config.isMaxLimitReached) {
             handleMaxLimitReached(config, onResult)
@@ -390,18 +334,5 @@ object ImagePicker {
     internal fun deliverResult(result: ImagePickerResult) {
         pendingCallback?.get()?.invoke(result)
         pendingCallback = null  // 清理引用
-    }
-
-    /**
-     * 获取 Application 实例
-     *
-     * @return Application 实例
-     * @throws IllegalStateException 如果未初始化
-     */
-    internal fun getApplication(): Application {
-        return application
-            ?: throw IllegalStateException(
-                "ImagePicker 未初始化。请先调用 ImagePicker.init(application) 或通过 App Startup 自动初始化。"
-            )
     }
 }

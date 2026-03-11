@@ -34,4 +34,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="状态栏导航栏" />
+
+    <!-- 新增：顺序动画示例按钮 -->
+    <Button
+        android:id="@+id/btnSequentialAnim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="顺序动画Demo" />
+
 </LinearLayout>

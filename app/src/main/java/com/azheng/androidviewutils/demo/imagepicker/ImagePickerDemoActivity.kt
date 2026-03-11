@@ -1,4 +1,4 @@
-package com.azheng.androidviewutils.demo
+package com.azheng.androidviewutils.demo.imagepicker
 
 import android.net.Uri
 import android.os.Bundle
@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import com.azheng.androidviewutils.demo.R
 import com.azheng.viewutils.edge.BaseEdgeActivity
 import com.azheng.viewutils.imagepicker.ImagePicker
 import com.azheng.viewutils.imagepicker.ImagePickerConfig

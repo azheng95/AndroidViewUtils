@@ -32,9 +32,13 @@ dependencies {
 	        implementation 'com.github.azheng95:AndroidViewUtils:Tag'
 }
 ```
+按需初始化
+```groovy
+//图片查看器
+ImageViewer.init( this)
+```
 
-
-***********添加以下依赖**********
+***********按需添加以下依赖**********
 
  ```
     implementation("com.github.bumptech.glide:glide:4.16.0")

@@ -4,30 +4,125 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.view.View
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityOptionsCompat
 import com.github.piasy.biv.BigImageViewer
+import com.github.piasy.biv.loader.ImageLoader
 import com.github.piasy.biv.loader.glide.GlideImageLoader
 import java.io.File
 
+/**
+ * 图片查看器
+ */
 class ImageViewer private constructor() {
 
     companion object {
-        private var isInitialized = false
+        private const val TAG = "ImageViewer"
 
-        @JvmStatic
-        fun init(application: Application) {
-            if (!isInitialized) {
-                BigImageViewer.initialize(GlideImageLoader.with(application))
-                isInitialized = true
+        private var isInitialized = false
+        private var initError: String? = null
+
+        /**
+         * 检查 BigImageViewer 依赖是否可用
+         */
+        private fun isBigImageViewerAvailable(): Boolean {
+            return try {
+                Class.forName("com.github.piasy.biv.BigImageViewer")
+                true
+            } catch (e: ClassNotFoundException) {
+                false
             }
         }
 
+        /**
+         * 获取缺失依赖的提示信息
+         */
+        private fun getMissingDependenciesMessage(): String {
+            return buildString {
+                appendLine("ImageViewer: 缺少必要的依赖库！")
+                appendLine("请在 build.gradle 中添加以下依赖：")
+                appendLine()
+                appendLine("implementation(\"com.github.piasy:BigImageViewer:Tag\")")
+                appendLine("implementation(\"com.github.piasy:GlideImageLoader:Tag\")")
+                appendLine("implementation(\"com.github.piasy:GlideImageViewFactory:Tag\")")
+                appendLine()
+                appendLine("同时确保已添加 JitPack 仓库：")
+                appendLine("maven { url 'https://jitpack.io' }")
+            }
+        }
+
+        /**
+         * 初始化 ImageViewer，使用默认的 GlideImageLoader
+         * @param application Application 实例
+         */
+        @JvmStatic
+        fun init(application: Application) {
+            init(application, null)
+        }
+
+        /**
+         * 初始化 ImageViewer，可传入自定义 ImageLoader
+         * @param application Application 实例
+         * @param imageLoader 自定义的 ImageLoader，为 null 时使用默认的 GlideImageLoader
+         */
+        @JvmStatic
+        fun init(application: Application, imageLoader: ImageLoader?) {
+            if (isInitialized) {
+                return
+            }
+            // 检查依赖是否存在
+            if (!isBigImageViewerAvailable()) {
+                initError = getMissingDependenciesMessage()
+                Log.e(TAG, initError!!)
+                return
+            }
+
+            // 正常初始化
+            try {
+                val loader = imageLoader ?: GlideImageLoader.with(application)
+                BigImageViewer.initialize(loader)
+                isInitialized = true
+                initError = null
+                Log.d(TAG, "ImageViewer initialized successfully")
+            } catch (e: Exception) {
+                initError = "ImageViewer 初始化失败: ${e.message}\n${getMissingDependenciesMessage()}"
+                Log.e(TAG, initError!!, e)
+            }
+        }
+
+        /**
+         * 检查是否已初始化
+         */
+        @JvmStatic
+        fun isInitialized(): Boolean = isInitialized
+
+        /**
+         * 获取初始化错误信息
+         */
+        @JvmStatic
+        fun getInitError(): String? = initError
+
         @JvmStatic
         fun with(context: Context): Builder {
-            check(isInitialized) { "ImageViewer must be initialized first. Call ImageViewer.init(application) in your Application." }
+            // 检查是否有初始化错误
+            if (initError != null) {
+                throw IllegalStateException(initError)
+            }
+
+            // 检查是否已初始化
+            if (!isInitialized) {
+                // 尝试自动检测问题
+                if (!isBigImageViewerAvailable()) {
+                    throw IllegalStateException(getMissingDependenciesMessage())
+                }
+                throw IllegalStateException(
+                    "ImageViewer must be initialized first. Call ImageViewer.init(application) in your Application."
+                )
+            }
+
             return Builder(context)
         }
     }
