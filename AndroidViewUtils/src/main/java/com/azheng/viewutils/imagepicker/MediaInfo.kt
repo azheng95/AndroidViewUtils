@@ -3,10 +3,13 @@ package com.azheng.viewutils.imagepicker
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
 /**
  * 媒体文件信息封装
  */
+@Parcelize
 data class MediaInfo(
     val uri: Uri,
     val fileName: String?,
@@ -18,7 +21,7 @@ data class MediaInfo(
     val videoDuration: Long = 0L,
     val videoWidth: Int = 0,
     val videoHeight: Int = 0
-) {
+) : Parcelable {
     /** 视频时长（秒） */
     val videoDurationSeconds: Int get() = (videoDuration / 1000).toInt()
 
