@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksps)
-    id("kotlin-parcelize")
 }
 
 android {
@@ -61,8 +60,4 @@ dependencies {
     compileOnly("io.noties.markwon:simple-ext:4.6.2")
     compileOnly("io.noties.markwon:editor:4.6.2")
     compileOnly("io.noties.markwon:syntax-highlight:4.6.2")
-    compileOnly("com.github.piasy:BigImageViewer:1.8.1")
-    compileOnly("com.github.piasy:GlideImageLoader:1.8.1")
-    compileOnly("com.github.piasy:GlideImageViewFactory:1.8.1")
-
 }

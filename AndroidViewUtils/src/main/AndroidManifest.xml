@@ -1,27 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-
-    <application>
-        <!-- 声明图片浏览器 Activity -->
-        <activity
-            android:name=".imageviewer.ImageViewerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-
-        <!-- 透明 Activity -->
-        <activity
-            android:name=".imagepicker.ImagePickerActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            tools:ignore="LockedOrientationActivity" />
-
-
-    </application>
-
-</manifest>
+<manifest />

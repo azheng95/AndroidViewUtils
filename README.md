@@ -23,8 +23,6 @@ dependencyResolutionManagement {
 }
 ```
 
-[ImageViewer.kt](AndroidViewUtils/src/main/java/com/azheng/viewutils/imageviewer/ImageViewer.kt)和[ImagePicker.kt](AndroidViewUtils/src/main/java/com/azheng/viewutils/imagepicker/ImagePicker.kt)工具会自动初始化
-
 在项目 app 模块下的 `build.gradle` 文件中加入远程依赖 ，Tag 替换为最新版本
 
 ```groovy
@@ -32,22 +30,12 @@ dependencies {
 	        implementation 'com.github.azheng95:AndroidViewUtils:Tag'
 }
 ```
-按需初始化
-```groovy
-//图片查看器
-ImageViewer.init( this)
-```
-
 ***********按需添加以下依赖**********
 
  ```
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.github.bumptech.glide:ksp:4.16.0")
     implementation("com.github.wasabeef:glide-transformations:4.3.0")
-    //图片查看器
-    implementation("com.github.piasy:BigImageViewer:1.8.1")
-    implementation("com.github.piasy:GlideImageLoader:1.8.1")
-    implementation("com.github.piasy:GlideImageViewFactory:1.8.1")
     //Markwon
     implementation("io.noties.markwon:core:4.6.2")
     implementation("io.noties.markwon:image-glide:4.6.2")
