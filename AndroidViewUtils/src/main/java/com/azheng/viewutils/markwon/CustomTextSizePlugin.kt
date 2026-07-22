@@ -1,6 +1,7 @@
 package com.azheng.viewutils.markwon
 
 import android.content.Context
+import android.util.TypedValue
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.core.MarkwonTheme
 
@@ -10,8 +11,10 @@ import io.noties.markwon.core.MarkwonTheme
 class CustomTextSizePlugin(
     private val textSizeSp: Float = 16f,      // 正文字号 (sp)
     private val headingBreakHeight: Int = 0,   // 标题下方间距
-    private var context: Context,
+    context: Context,
 ) : AbstractMarkwonPlugin() {
+
+    private val displayMetrics = context.applicationContext.resources.displayMetrics
 
     override fun configureTheme(builder: MarkwonTheme.Builder) {
         builder
@@ -30,8 +33,12 @@ class CustomTextSizePlugin(
             // 标题下方分隔线高度（0 = 不显示）
             .headingBreakHeight(headingBreakHeight)
             // 代码块字号（相对于正文的比例）
-            .codeTextSize((textSizeSp * 0.9f * context.resources.displayMetrics.scaledDensity).toInt())
+            .codeTextSize(spToPx(textSizeSp * 0.9f))
             // 列表项缩进
-            .bulletWidth((textSizeSp * 0.4f).toInt())
+            .bulletWidth(spToPx(textSizeSp * 0.4f))
+    }
+
+    private fun spToPx(value: Float): Int {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, displayMetrics).toInt()
     }
 }

@@ -40,6 +40,15 @@ data class AnimationConfig(
     /** 动画监听器（注意：可能持有外部引用，需在合适时机释放） */
     val listener: SequentialAnimationListener? = null
 ) {
+    init {
+        require(delayBetween >= 0L) { "delayBetween 不能小于 0" }
+        require(duration >= 0L) { "duration 不能小于 0" }
+        require(startDelay >= 0L) { "startDelay 不能小于 0" }
+        require(translationDistance.isFinite() && translationDistance >= 0f) {
+            "translationDistance 必须是非负有限值"
+        }
+    }
+
     /**
      * 配置建造者
      */

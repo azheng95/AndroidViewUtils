@@ -2,8 +2,10 @@ package com.azheng.viewutils.sequentialanimator
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.os.Looper
 import android.view.View
 import android.view.ViewPropertyAnimator
+import androidx.annotation.MainThread
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
@@ -38,6 +40,9 @@ class SequentialAnimator private constructor(
     // 注意：ViewPropertyAnimator 本身不会阻止 View 回收，因为它内部也是弱引用
     private val activeAnimators = mutableListOf<ViewPropertyAnimator>()
 
+    // 标识每次运行，避免旧动画的异步回调污染新一轮状态。
+    private var runToken: Int = 0
+
     /**
      * 获取有效的 View 列表（过滤掉已被回收的 View）
      */
@@ -51,12 +56,15 @@ class SequentialAnimator private constructor(
      * @param scope 协程作用域，建议使用 lifecycleScope 确保生命周期安全
      * @return 动画控制器
      */
+    @MainThread
     fun start(scope: CoroutineScope): AnimationController {
+        requireMainThread()
         val views = getValidViews()
         val currentConfig = config
 
         // 如果没有有效的 View 或配置为空，直接返回
         if (views.isEmpty() || currentConfig == null) return this
+        if (scope.coroutineContext[Job]?.isActive == false) return this
 
         // 取消之前的动画
         cancel()
@@ -64,6 +72,7 @@ class SequentialAnimator private constructor(
         isAnimating.set(true)
         completedCount.set(0)
         activeAnimators.clear()
+        val currentRunToken = ++runToken
 
         // 初始化所有 View 的状态
         views.forEach { view ->
@@ -73,9 +82,10 @@ class SequentialAnimator private constructor(
         // 通知动画开始
         currentConfig.listener?.onAnimationStart()
 
-        // 使用传入的 scope 启动协程
-        // 如果使用 lifecycleScope，当 Activity/Fragment 销毁时会自动取消
-        animationJob = scope.launch {
+        val completion = CompletableDeferred<Unit>()
+
+        // 始终在主线程调度，保证所有 View 和 Animator 操作线程安全。
+        animationJob = scope.launch(Dispatchers.Main.immediate) {
             try {
                 // 整体开始延迟
                 if (currentConfig.startDelay > 0) {
@@ -94,16 +104,26 @@ class SequentialAnimator private constructor(
                     // 再次检查
                     if (!isActive) return@launch
 
-                    // 在主线程执行动画
-                    withContext(Dispatchers.Main.immediate) {
-                        // 检查 View 是否仍然有效（可能在延迟期间被回收）
-                        if (viewRefs[index].get() != null) {
-                            animateView(view, index, views.size, currentConfig)
-                        }
+                    animateView(
+                        view,
+                        index,
+                        views.size,
+                        currentConfig,
+                        completion,
+                        currentRunToken
+                    )
+                }
+
+                // 保持协程与实际属性动画同生命周期，宿主取消 scope 时可取消动画。
+                completion.await()
+            } catch (e: CancellationException) {
+                if (currentRunToken == runToken) {
+                    activeAnimators.toList().forEach { it.cancel() }
+                    activeAnimators.clear()
+                    if (isAnimating.getAndSet(false)) {
+                        currentConfig.listener?.onAnimationCancel()
                     }
                 }
-            } catch (e: CancellationException) {
-                // 协程被取消，这是正常情况，不需要特殊处理
                 throw e
             }
         }
@@ -123,7 +143,9 @@ class SequentialAnimator private constructor(
         view: View,
         index: Int,
         totalCount: Int,
-        currentConfig: AnimationConfig
+        currentConfig: AnimationConfig,
+        completion: CompletableDeferred<Unit>,
+        currentRunToken: Int
     ) {
         // 通知单个 View 动画开始
         currentConfig.listener?.onViewAnimationStart(view, index)
@@ -152,6 +174,9 @@ class SequentialAnimator private constructor(
 
                         // 从活跃列表中移除
                         self.activeAnimators.remove(anim)
+                        anim.setListener(null)
+
+                        if (currentRunToken != self.runToken || !self.isAnimating.get()) return
 
                         // 通知单个 View 动画结束
                         cfg?.listener?.onViewAnimationEnd(view, index)
@@ -160,6 +185,7 @@ class SequentialAnimator private constructor(
                         if (self.completedCount.incrementAndGet() == totalCount) {
                             self.isAnimating.set(false)
                             cfg?.listener?.onAnimationEnd()
+                            completion.complete(Unit)
 
                             // 动画全部完成后，清理引用
                             self.cleanupReferences()
@@ -169,6 +195,7 @@ class SequentialAnimator private constructor(
                     override fun onAnimationCancel(animation: Animator) {
                         val self = animatorRef.get() ?: return
                         self.activeAnimators.remove(anim)
+                        anim.setListener(null)
                     }
                 })
             }
@@ -195,6 +222,8 @@ class SequentialAnimator private constructor(
      * 取消动画
      */
     override fun cancel() {
+        requireMainThread()
+        runToken++
         // 1. 取消协程
         animationJob?.cancel()
         animationJob = null
@@ -224,6 +253,7 @@ class SequentialAnimator private constructor(
      * 跳过动画，直接设置为最终状态
      */
     override fun skipToEnd() {
+        requireMainThread()
         // 先取消当前动画
         cancel()
 
@@ -246,8 +276,15 @@ class SequentialAnimator private constructor(
      * 当确定不再使用此动画器时调用
      */
     override fun release() {
+        requireMainThread()
         cancel()
         config = null  // 释放配置（包括 listener）
+    }
+
+    private fun requireMainThread() {
+        check(Looper.myLooper() == Looper.getMainLooper()) {
+            "SequentialAnimator 必须在主线程调用"
+        }
     }
 
     /**

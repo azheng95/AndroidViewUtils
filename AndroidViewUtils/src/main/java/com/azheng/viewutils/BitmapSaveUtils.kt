@@ -7,7 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.annotation.RequiresApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -29,32 +29,53 @@ object BitmapSaveUtils {
         bitmap: Bitmap,
         folderName: String = "MyApp-Photos",
         quality: Int = 100,
-        format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
+        format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+        fileName: String? = null
     ): Result<Uri> = withContext(Dispatchers.IO) {
-        runCatching {
-            val name = generateFileName()
+        runCatchingCancellable {
+            requireValidQuality(quality)
             val (mimeType, extension) = getFormatInfo(format)
+            val displayName = normalizeFileName(fileName, extension)
+            var insertedUri: Uri? = null
 
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, "$name$extension")
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            try {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                        val safeFolderName = sanitizePathSegment(folderName, "Pictures")
+                        put(
+                            MediaStore.Images.Media.RELATIVE_PATH,
+                            "${Environment.DIRECTORY_PICTURES}/$safeFolderName"
+                        )
+                        put(MediaStore.Images.Media.IS_PENDING, 1)
+                    }
+                }
+                val contentResolver = context.contentResolver
+                val uri = contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                ) ?: error("创建 MediaStore 记录失败")
+                insertedUri = uri
+
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    check(bitmap.compress(format, quality, outputStream)) { "Bitmap 压缩失败" }
+                } ?: error("打开输出流失败")
+
                 if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/$folderName")
+                    contentResolver.update(
+                        uri,
+                        ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) },
+                        null,
+                        null
+                    )
                 }
+
+                uri
+            } catch (error: Throwable) {
+                insertedUri?.let { context.contentResolver.delete(it, null, null) }
+                throw error
             }
-            val contentResolver = context.contentResolver
-            val uri = contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
-            ) ?: throw Exception("创建 MediaStore 记录失败")
-
-            contentResolver.openOutputStream(uri)?.use { outputStream ->
-                if (!bitmap.compress(format, quality, outputStream)) {
-                    throw Exception("Bitmap 压缩失败")
-                }
-            } ?: throw Exception("打开输出流失败")
-
-            uri
         }
     }
 
@@ -71,23 +92,11 @@ object BitmapSaveUtils {
         quality: Int = 100,
         format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
     ): Result<File> = withContext(Dispatchers.IO) {
-        runCatching {
-            val name = fileName ?: generateFileName()
+        runCatchingCancellable {
+            requireValidQuality(quality)
             val (_, extension) = getFormatInfo(format)
-
-            val directory = File(context.filesDir, subFolder).apply {
-                if (!exists()) mkdirs()
-            }
-
-            val file = File(directory, "$name$extension")
-
-            FileOutputStream(file).use { outputStream ->
-                if (!bitmap.compress(format, quality, outputStream)) {
-                    throw Exception("Bitmap 压缩失败")
-                }
-            }
-
-            file
+            val directory = resolveSafeDirectory(context.filesDir, subFolder)
+            compressToFile(bitmap, directory, fileName, extension, quality, format)
         }
     }
 
@@ -103,22 +112,13 @@ object BitmapSaveUtils {
         quality: Int = 100,
         format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
     ): Result<File> = withContext(Dispatchers.IO) {
-        runCatching {
-            val name = fileName ?: generateFileName()
+        runCatchingCancellable {
+            requireValidQuality(quality)
             val (_, extension) = getFormatInfo(format)
 
             val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-                ?: throw Exception("外部存储不可用")
-
-            val file = File(directory, "$name$extension")
-
-            FileOutputStream(file).use { outputStream ->
-                if (!bitmap.compress(format, quality, outputStream)) {
-                    throw Exception("Bitmap 压缩失败")
-                }
-            }
-
-            file
+                ?: error("外部存储不可用")
+            compressToFile(bitmap, directory, fileName, extension, quality, format)
         }
     }
 
@@ -134,23 +134,67 @@ object BitmapSaveUtils {
         quality: Int = 100,
         format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
     ): Result<File> = withContext(Dispatchers.IO) {
-        runCatching {
-            val name = fileName ?: generateFileName()
+        runCatchingCancellable {
+            requireValidQuality(quality)
             val (_, extension) = getFormatInfo(format)
+            val directory = resolveSafeDirectory(context.cacheDir, "images")
+            compressToFile(bitmap, directory, fileName, extension, quality, format)
+        }
+    }
 
-            val directory = File(context.cacheDir, "images").apply {
-                if (!exists()) mkdirs()
-            }
+    private fun compressToFile(
+        bitmap: Bitmap,
+        directory: File,
+        fileName: String?,
+        extension: String,
+        quality: Int,
+        format: Bitmap.CompressFormat
+    ): File {
+        ensureDirectory(directory)
+        val file = File(directory, normalizeFileName(fileName, extension))
+        FileOutputStream(file).use { outputStream ->
+            check(bitmap.compress(format, quality, outputStream)) { "Bitmap 压缩失败" }
+        }
+        return file
+    }
 
-            val file = File(directory, "$name$extension")
+    private fun resolveSafeDirectory(root: File, subFolder: String): File {
+        require(subFolder.isNotBlank()) { "目录名不能为空" }
+        val rootPath = root.canonicalFile
+        val directory = File(rootPath, subFolder).canonicalFile
+        require(directory.path.startsWith(rootPath.path + File.separator)) { "目录必须位于应用存储内" }
+        return directory
+    }
 
-            FileOutputStream(file).use { outputStream ->
-                if (!bitmap.compress(format, quality, outputStream)) {
-                    throw Exception("Bitmap 压缩失败")
-                }
-            }
+    private fun ensureDirectory(directory: File) {
+        check(directory.isDirectory || directory.mkdirs()) { "无法创建目录: ${directory.path}" }
+    }
 
-            file
+    private fun normalizeFileName(fileName: String?, extension: String): String {
+        val rawName = fileName?.takeIf { it.isNotBlank() } ?: generateFileName()
+        val safeName = sanitizePathSegment(rawName, generateFileName())
+        return if (safeName.endsWith(extension, ignoreCase = true)) safeName else "$safeName$extension"
+    }
+
+    private fun sanitizePathSegment(value: String, fallback: String): String {
+        val sanitized = value
+            .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+            .trim()
+            .trim('.')
+        return sanitized.ifBlank { fallback }
+    }
+
+    private fun requireValidQuality(quality: Int) {
+        require(quality in 0..100) { "quality 必须在 0..100 之间" }
+    }
+
+    private inline fun <T> runCatchingCancellable(block: () -> T): Result<T> {
+        return try {
+            Result.success(block())
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            Result.failure(error)
         }
     }
 

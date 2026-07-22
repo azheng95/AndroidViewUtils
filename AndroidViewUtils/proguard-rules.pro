@@ -19,9 +19,3 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-# 忽略库的警告并保留注解
--dontwarn com.azheng.viewutils.**
--keepattributes *Annotation*, Exceptions, InnerClasses
-
-# 保留工具类不被混淆
--keep class com.azheng.viewutils.** { *; }

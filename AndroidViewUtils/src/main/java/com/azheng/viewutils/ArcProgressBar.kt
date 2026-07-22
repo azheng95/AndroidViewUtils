@@ -1,6 +1,7 @@
 package com.azheng.viewutils
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -27,6 +28,7 @@ import android.view.View
  *     .setGradientColors(intArrayOf(Color.RED, Color.YELLOW))
  *     .apply() // 统一应用所有参数，只执行一次重绘/更新
  */
+@SuppressLint("CustomViewStyleable")
 class ArcProgressBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -90,14 +92,23 @@ class ArcProgressBar @JvmOverloads constructor(
     private var sweepGradient: SweepGradient? = null
 
     init {
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.ArcProgressBar)
-        _bgColor = typedArray.getColor(R.styleable.ArcProgressBar_arc_bg_color, _bgColor)
-        _progressColor = typedArray.getColor(R.styleable.ArcProgressBar_arc_progress_color, _progressColor)
-        _progress = typedArray.getFloat(R.styleable.ArcProgressBar_arc_progress, _progress)
-        _maxProgress = typedArray.getFloat(R.styleable.ArcProgressBar_arc_max_progress, _maxProgress)
-        _strokeWidth = typedArray.getDimension(R.styleable.ArcProgressBar_arc_stroke_width, _strokeWidth)
-        _startAngle = typedArray.getInt(R.styleable.ArcProgressBar_arc_start_angle, _startAngle)
-        _sweepAngle = typedArray.getInt(R.styleable.ArcProgressBar_arc_sweep_angle, _sweepAngle)
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.AvuArcProgressBar)
+        _bgColor = typedArray.getColor(R.styleable.AvuArcProgressBar_avu_arcBackgroundColor, _bgColor)
+        _progressColor = typedArray.getColor(R.styleable.AvuArcProgressBar_avu_arcProgressColor, _progressColor)
+        _maxProgress = typedArray.getFloat(
+            R.styleable.AvuArcProgressBar_avu_arcMaxProgress,
+            _maxProgress
+        ).takeIf { it.isFinite() }?.coerceAtLeast(1f) ?: 100f
+        _progress = typedArray.getFloat(
+            R.styleable.AvuArcProgressBar_avu_arcProgress,
+            _progress
+        ).takeIf { it.isFinite() }?.coerceIn(0f, _maxProgress) ?: 0f
+        _strokeWidth = typedArray.getDimension(
+            R.styleable.AvuArcProgressBar_avu_arcStrokeWidth,
+            _strokeWidth
+        ).coerceAtLeast(0f)
+        _startAngle = typedArray.getInt(R.styleable.AvuArcProgressBar_avu_arcStartAngle, _startAngle)
+        _sweepAngle = typedArray.getInt(R.styleable.AvuArcProgressBar_avu_arcSweepAngle, _sweepAngle)
         typedArray.recycle()
 
         // 初始化临时参数（新增）
@@ -154,17 +165,21 @@ class ArcProgressBar @JvmOverloads constructor(
             needInvalidate = true
         }
 
-        // 3. 处理进度变化
-        if (pendingProgress != _progress) {
-            _progress = pendingProgress.coerceIn(0f, pendingMaxProgress)
+        // 3. 先处理最大进度，确保后续进度约束始终有合法区间。
+        val safeMaxProgress = pendingMaxProgress
+            .takeIf { it.isFinite() }
+            ?.coerceAtLeast(1f)
+            ?: 100f
+        if (safeMaxProgress != _maxProgress) {
+            _maxProgress = safeMaxProgress
+            _progress = _progress.coerceIn(0f, _maxProgress)
+            pendingProgress = _progress // 同步临时参数
             needInvalidate = true
         }
 
-        // 4. 处理最大进度变化
-        if (pendingMaxProgress != _maxProgress) {
-            _maxProgress = pendingMaxProgress
-            _progress = _progress.coerceIn(0f, _maxProgress)
-            pendingProgress = _progress // 同步临时参数
+        // 4. 处理进度变化
+        if (pendingProgress != _progress) {
+            _progress = pendingProgress.takeIf { it.isFinite() }?.coerceIn(0f, _maxProgress) ?: 0f
             needInvalidate = true
         }
 
@@ -198,9 +213,12 @@ class ArcProgressBar @JvmOverloads constructor(
         }
 
         // 9. 处理渐变颜色变化
-        if (!pendingGradientColors.contentEquals(_gradientColors) || pendingGradientPositions != _gradientPositions) {
-            _gradientColors = pendingGradientColors
-            _gradientPositions = pendingGradientPositions
+        if (!pendingGradientColors.contentEquals(_gradientColors) ||
+            !pendingGradientPositions.contentEquals(_gradientPositions)
+        ) {
+            validateGradient(pendingGradientColors, pendingGradientPositions)
+            _gradientColors = pendingGradientColors.copyOf()
+            _gradientPositions = pendingGradientPositions?.copyOf()
             _useGradient = true
             pendingUseGradient = true // 同步临时参数
             needUpdateGradient = true
@@ -241,6 +259,7 @@ class ArcProgressBar @JvmOverloads constructor(
 
     private fun updateGradient() {
         if (width == 0 || height == 0) return
+        validateGradient(_gradientColors, _gradientPositions)
 
         sweepGradient = SweepGradient(
             width / 2f, height / 2f,
@@ -358,6 +377,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置底色
      */
+    @JvmName("setBgColorFluent")
     fun setBgColor(color: Int): ArcProgressBar {
         pendingBgColor = color
         hasPendingChanges = true
@@ -367,6 +387,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置进度条颜色（纯色，自动关闭渐变）
      */
+    @JvmName("setProgressColorFluent")
     fun setProgressColor(color: Int): ArcProgressBar {
         pendingProgressColor = color
         pendingUseGradient = false
@@ -377,6 +398,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置当前进度
      */
+    @JvmName("setProgressFluent")
     fun setProgress(progress: Float): ArcProgressBar {
         pendingProgress = progress
         hasPendingChanges = true
@@ -386,6 +408,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置最大进度
      */
+    @JvmName("setMaxProgressFluent")
     fun setMaxProgress(maxProgress: Float): ArcProgressBar {
         pendingMaxProgress = maxProgress
         hasPendingChanges = true
@@ -395,8 +418,9 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置圆弧宽度
      */
+    @JvmName("setStrokeWidthFluent")
     fun setStrokeWidth(width: Float): ArcProgressBar {
-        pendingStrokeWidth = width
+        pendingStrokeWidth = width.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -404,6 +428,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置起始角度
      */
+    @JvmName("setStartAngleFluent")
     fun setStartAngle(angle: Int): ArcProgressBar {
         pendingStartAngle = angle
         hasPendingChanges = true
@@ -413,6 +438,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置扫过角度
      */
+    @JvmName("setSweepAngleFluent")
     fun setSweepAngle(angle: Int): ArcProgressBar {
         pendingSweepAngle = angle
         hasPendingChanges = true
@@ -422,6 +448,7 @@ class ArcProgressBar @JvmOverloads constructor(
     /**
      * 链式设置是否使用渐变
      */
+    @JvmName("setUseGradientFluent")
     fun setUseGradient(useGradient: Boolean): ArcProgressBar {
         pendingUseGradient = useGradient
         hasPendingChanges = true
@@ -434,8 +461,9 @@ class ArcProgressBar @JvmOverloads constructor(
      * @param positions 位置数组（可选，传null则均匀分布）
      */
     fun setGradientColors(colors: IntArray, positions: FloatArray? = null): ArcProgressBar {
-        pendingGradientColors = colors
-        pendingGradientPositions = positions
+        validateGradient(colors, positions)
+        pendingGradientColors = colors.copyOf()
+        pendingGradientPositions = positions?.copyOf()
         pendingUseGradient = true
         hasPendingChanges = true
         return this
@@ -466,9 +494,10 @@ class ArcProgressBar @JvmOverloads constructor(
      * @param duration 动画时长（毫秒）
      */
     fun setProgressWithAnimation(targetProgress: Float, duration: Long = 300L) {
+        require(duration >= 0L) { "duration 不能小于 0" }
         progressAnimator?.cancel()
 
-        val target = targetProgress.coerceIn(0f, _maxProgress)
+        val target = targetProgress.takeIf { it.isFinite() }?.coerceIn(0f, _maxProgress) ?: 0f
 
         progressAnimator = ValueAnimator.ofFloat(_progress, target).apply {
             this.duration = duration
@@ -494,6 +523,19 @@ class ArcProgressBar @JvmOverloads constructor(
      * 获取进度百分比
      */
     fun getProgressPercent(): Float = _progress / _maxProgress * 100
+
+    private fun validateGradient(colors: IntArray, positions: FloatArray?) {
+        require(colors.size >= 2) { "渐变色至少需要 2 个颜色" }
+        require(positions == null || positions.size == colors.size) {
+            "positions 数量必须与 colors 一致"
+        }
+        require(positions == null || positions.all { it.isFinite() && it in 0f..1f }) {
+            "positions 必须是 0..1 之间的有限值"
+        }
+        require(positions == null || positions.asList().zipWithNext().all { (a, b) -> a <= b }) {
+            "positions 必须按升序排列"
+        }
+    }
 
     /**
      * 取消动画

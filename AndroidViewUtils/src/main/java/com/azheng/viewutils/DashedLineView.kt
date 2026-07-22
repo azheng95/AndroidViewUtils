@@ -1,5 +1,6 @@
 package com.azheng.viewutils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -23,11 +24,11 @@ import android.view.View
  * <com.azheng.viewutils.DashedLineView
  *     android:layout_width="match_parent"
  *     android:layout_height="wrap_content"
- *     app:dashedLineWidth="1dp"
- *     app:dashedLineDashWidth="4dp"
- *     app:dashedLineDashGap="2dp"
- *     app:dashedLineColor="#F5EFE0"
- *     app:dashedLineOrientation="horizontal" />
+ *     app:avu_dashedLineWidth="1dp"
+ *     app:avu_dashedLineDashWidth="4dp"
+ *     app:avu_dashedLineDashGap="2dp"
+ *     app:avu_dashedLineColor="#F5EFE0"
+ *     app:avu_dashedLineOrientation="avu_horizontal" />
  *
  * 链式调用示例：
  * dashedLineView
@@ -37,6 +38,7 @@ import android.view.View
  *     .setOrientation(DashedLineView.VERTICAL)
  *     .apply() // 统一应用参数并重绘
  */
+@SuppressLint("CustomViewStyleable")
 class DashedLineView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -64,6 +66,8 @@ class DashedLineView @JvmOverloads constructor(
         }
     }
 
+    private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
+
     // ==================== 实际生效的参数（原有） ====================
     private var lineWidth = dp2px(DEFAULT_LINE_WIDTH_DP)
     private var dashWidth = dp2px(DEFAULT_DASH_WIDTH_DP)
@@ -82,7 +86,6 @@ class DashedLineView @JvmOverloads constructor(
     private var pendingOrientation: Orientation = orientation
 
     // ==================== 绑定对象 ====================
-    private val displayMetrics: DisplayMetrics = context.resources.displayMetrics
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -94,16 +97,16 @@ class DashedLineView @JvmOverloads constructor(
     init {
         setLayerType(LAYER_TYPE_SOFTWARE, null)
 
-        val ta = context.obtainStyledAttributes(attrs, R.styleable.DashedLineView)
+        val ta = context.obtainStyledAttributes(attrs, R.styleable.AvuDashedLineView)
         try {
-            lineWidth = ta.getDimension(R.styleable.DashedLineView_dashedLineWidth, dp2px(DEFAULT_LINE_WIDTH_DP))
+            lineWidth = ta.getDimension(R.styleable.AvuDashedLineView_avu_dashedLineWidth, dp2px(DEFAULT_LINE_WIDTH_DP))
                 .coerceAtLeast(0.5f)
-            dashWidth = ta.getDimension(R.styleable.DashedLineView_dashedLineDashWidth, dp2px(DEFAULT_DASH_WIDTH_DP))
+            dashWidth = ta.getDimension(R.styleable.AvuDashedLineView_avu_dashedLineDashWidth, dp2px(DEFAULT_DASH_WIDTH_DP))
                 .coerceAtLeast(1f)
-            dashGap = ta.getDimension(R.styleable.DashedLineView_dashedLineDashGap, dp2px(DEFAULT_DASH_GAP_DP))
+            dashGap = ta.getDimension(R.styleable.AvuDashedLineView_avu_dashedLineDashGap, dp2px(DEFAULT_DASH_GAP_DP))
                 .coerceAtLeast(0f)
-            lineColor = ta.getColor(R.styleable.DashedLineView_dashedLineColor, Color.parseColor(DEFAULT_LINE_COLOR))
-            orientation = Orientation.fromValue(ta.getInt(R.styleable.DashedLineView_dashedLineOrientation, HORIZONTAL))
+            lineColor = ta.getColor(R.styleable.AvuDashedLineView_avu_dashedLineColor, Color.parseColor(DEFAULT_LINE_COLOR))
+            orientation = Orientation.fromValue(ta.getInt(R.styleable.AvuDashedLineView_avu_dashedLineOrientation, HORIZONTAL))
         } finally {
             ta.recycle()
         }
@@ -132,7 +135,7 @@ class DashedLineView @JvmOverloads constructor(
         paint.strokeWidth = lineWidth
         paint.color = lineColor
         val effectiveDashWidth = if (dashWidth <= 0) 1f else dashWidth
-        val effectiveDashGap = if (dashGap < 0) 0f else dashGap
+        val effectiveDashGap = dashGap.coerceAtLeast(0.1f)
         paint.pathEffect = DashPathEffect(floatArrayOf(effectiveDashWidth, effectiveDashGap), 0f)
     }
 

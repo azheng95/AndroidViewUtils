@@ -20,10 +20,7 @@ object SpanMatchKeywordUtils {
             return spannable
         }
 
-        // 忽略大小写，找到第一个匹配的起始索引
-        val textLower = text.lowercase()
-        val keywordLower = keyword.lowercase()
-        val firstMatchStart = textLower.indexOf(keywordLower)
+        val firstMatchStart = text.indexOf(keyword, ignoreCase = true)
 
         // 找到匹配位置，标红对应区域
         if (firstMatchStart != -1) {

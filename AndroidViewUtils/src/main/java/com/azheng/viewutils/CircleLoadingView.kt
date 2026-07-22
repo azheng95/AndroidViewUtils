@@ -59,10 +59,10 @@ class CircleLoadingView @JvmOverloads constructor(
     private var circleStrokeWidth = dp2px(8f)
 
     /** 进度环的颜色 */
-    private var progressColor = ContextCompat.getColor(context, R.color.CircleLoadingViewProgressColor)
+    private var progressColor = ContextCompat.getColor(context, R.color.avu_circle_loading_progress)
 
     /** 背景环的颜色 */
-    private var bgCircleColor = ContextCompat.getColor(context, R.color.CircleLoadingViewBgCircleColor)
+    private var bgCircleColor = ContextCompat.getColor(context, R.color.avu_circle_loading_background)
 
     /** 动画持续时间（单位：毫秒） */
     private var animationDuration = 2000L
@@ -125,49 +125,50 @@ class CircleLoadingView @JvmOverloads constructor(
      * 用于在宿主（Activity/Fragment）销毁时自动停止动画
      */
     private var lifecycleObserver: DefaultLifecycleObserver? = null
+    private var lifecycleOwnerRef: WeakReference<LifecycleOwner>? = null
 
     // ==================== 初始化代码块 ====================
     init {
         // 解析XML中定义的自定义属性
         attrs?.let {
-            context.withStyledAttributes(it, R.styleable.CircleLoadingView) {
+            context.withStyledAttributes(it, R.styleable.AvuCircleLoadingView) {
                 // 解析原有属性（线条宽度、颜色、动画时长、目标进度）
                 circleStrokeWidth = getDimensionPixelSize(
-                    R.styleable.CircleLoadingView_CircleLoadingViewCircleStrokeWidth,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingStrokeWidth,
                     dp2px(8f)  // 默认8dp
-                )
+                ).coerceAtLeast(0)
                 progressColor = getColor(
-                    R.styleable.CircleLoadingView_CircleLoadingViewProgressColor,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingProgressColor,
                     progressColor
                 )
                 bgCircleColor = getColor(
-                    R.styleable.CircleLoadingView_CircleLoadingViewBgCircleColor,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingBackgroundColor,
                     bgCircleColor
                 )
                 animationDuration = getInt(
-                    R.styleable.CircleLoadingView_CircleLoadingViewAnimationDuration,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingAnimationDuration,
                     2000  // 默认2秒
-                ).toLong()
+                ).toLong().coerceAtLeast(0L)
                 targetProgress = getFloat(
-                    R.styleable.CircleLoadingView_CircleLoadingViewTargetProgress,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingTargetProgress,
                     80f  // 默认80%
                 ).coerceIn(0f, 100f)  // 限制范围在0-100
 
                 // 解析新增角度属性（带默认值，保证向后兼容）
                 bgStartAngle = getFloat(
-                    R.styleable.CircleLoadingView_CircleLoadingViewBgStartAngle,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingBackgroundStartAngle,
                     270f  // 默认12点钟方向
                 )
                 bgSweepAngle = getFloat(
-                    R.styleable.CircleLoadingView_CircleLoadingViewBgSweepAngle,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingBackgroundSweepAngle,
                     360f  // 默认完整圆环
                 )
                 progressStartAngle = getFloat(
-                    R.styleable.CircleLoadingView_CircleLoadingViewProgressStartAngle,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingProgressStartAngle,
                     270f
                 )
                 progressSweepAngle = getFloat(
-                    R.styleable.CircleLoadingView_CircleLoadingViewProgressSweepAngle,
+                    R.styleable.AvuCircleLoadingView_avu_circleLoadingProgressSweepAngle,
                     -360f  // 默认逆时针（视觉顺时针）
                 )
             }
@@ -239,7 +240,6 @@ class CircleLoadingView @JvmOverloads constructor(
 
         // 标记需要执行的更新操作
         var needUpdatePaint = false      // 是否需要重新初始化画笔
-        var needUpdateAnimator = false   // 是否需要更新动画器配置
         var needUpdateRectF = false      // 是否需要重新计算绘制区域
         var needInvalidate = false       // 是否需要触发重绘
 
@@ -271,14 +271,12 @@ class CircleLoadingView @JvmOverloads constructor(
         if (pendingAnimationDuration != animationDuration) {
             animationDuration = pendingAnimationDuration
             progressAnimator.duration = animationDuration
-            needUpdateAnimator = true
         }
 
         // 目标进度变化：更新动画器的目标值
         if (pendingTargetProgress != targetProgress) {
             targetProgress = pendingTargetProgress
             progressAnimator.setFloatValues(0f, targetProgress)
-            needUpdateAnimator = true
         }
 
         // ---------- 2. 处理角度参数（仅需重绘，无需其他更新） ----------
@@ -400,7 +398,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setCircleStrokeWidthDp(dp: Float): CircleLoadingView {
-        pendingCircleStrokeWidth = dp2px(dp)
+        pendingCircleStrokeWidth = dp2px(dp.coerceAtLeast(0f))
         hasPendingChanges = true
         return this
     }
@@ -412,7 +410,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setCircleStrokeWidthPx(px: Int): CircleLoadingView {
-        pendingCircleStrokeWidth = px
+        pendingCircleStrokeWidth = px.coerceAtLeast(0)
         hasPendingChanges = true
         return this
     }
@@ -448,7 +446,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setAnimationDuration(duration: Long): CircleLoadingView {
-        pendingAnimationDuration = duration
+        pendingAnimationDuration = duration.coerceAtLeast(0L)
         hasPendingChanges = true
         return this
     }
@@ -460,7 +458,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setTargetProgress(progress: Float): CircleLoadingView {
-        pendingTargetProgress = progress.coerceIn(0f, 100f)
+        pendingTargetProgress = progress.takeIf { it.isFinite() }?.coerceIn(0f, 100f) ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -478,7 +476,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setBgStartAngle(angle: Float): CircleLoadingView {
-        pendingBgStartAngle = angle
+        pendingBgStartAngle = angle.takeIf { it.isFinite() } ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -490,7 +488,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setBgSweepAngle(angle: Float): CircleLoadingView {
-        pendingBgSweepAngle = angle
+        pendingBgSweepAngle = angle.takeIf { it.isFinite() } ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -502,7 +500,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setProgressStartAngle(angle: Float): CircleLoadingView {
-        pendingProgressStartAngle = angle
+        pendingProgressStartAngle = angle.takeIf { it.isFinite() } ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -514,7 +512,7 @@ class CircleLoadingView @JvmOverloads constructor(
      * @return 当前实例，支持链式调用
      */
     fun setProgressSweepAngle(angle: Float): CircleLoadingView {
-        pendingProgressSweepAngle = angle
+        pendingProgressSweepAngle = angle.takeIf { it.isFinite() } ?: 0f
         hasPendingChanges = true
         return this
     }
@@ -585,7 +583,9 @@ class CircleLoadingView @JvmOverloads constructor(
      */
     fun bindToLifecycle(owner: LifecycleOwner): CircleLoadingView {
         // 移除旧的观察者，防止重复绑定
-        lifecycleObserver?.let { owner.lifecycle.removeObserver(it) }
+        lifecycleObserver?.let { observer ->
+            lifecycleOwnerRef?.get()?.lifecycle?.removeObserver(observer)
+        }
 
         // 创建弱引用，避免Observer持有View导致内存泄漏
         val viewRef = WeakReference(this)
@@ -597,11 +597,14 @@ class CircleLoadingView @JvmOverloads constructor(
                 viewRef.get()?.stopLoadingAnimation()
                 // 移除自身，避免重复回调
                 owner.lifecycle.removeObserver(this)
+                lifecycleObserver = null
+                lifecycleOwnerRef = null
             }
         }
 
         // 注册观察者
         owner.lifecycle.addObserver(lifecycleObserver!!)
+        lifecycleOwnerRef = WeakReference(owner)
         return this
     }
 

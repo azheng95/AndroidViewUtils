@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.ksps)
 }
 
 android {
@@ -15,7 +14,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -44,14 +42,11 @@ dependencies {
     implementation libs.material
     implementation libs.androidx.activity
     implementation libs.androidx.constraintlayout
+    implementation libs.androidx.lifecycle.runtime.ktx
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.glide
+    implementation libs.markwon.core
+    implementation libs.markwon.image
+    implementation libs.markwon.image.glide
     implementation project(':AndroidViewUtils')
-    testImplementation libs.junit
-    androidTestImplementation libs.androidx.junit
-    androidTestImplementation libs.androidx.espresso.core
-
-
-    /***********添加以下依赖**********/
-
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    ksp("com.github.bumptech.glide:ksp:4.16.0")
 }

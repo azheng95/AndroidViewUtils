@@ -8,6 +8,7 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.lifecycle.LifecycleCoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,19 +16,11 @@ import kotlinx.coroutines.withContext
 object ViewToImageUtils {
 
     /**
-     * 存储ImageView的图片URL和加载参数（用于同步加载）
-     */
-    private val imageViewUrlMap = mutableMapOf<ImageView, ImageViewLoadParam>()
-
-    /**
      * 图片加载参数封装
      */
     data class ImageViewLoadParam(
-        val url: Any,
-        val isRound: Boolean = false,
-        val radius: Float? = null,
-        val blurRadius: Int? = null,
-        val sampling: Int? = null
+        val model: Any?,
+        val config: ImageLoadConfig = ImageLoadConfig()
     )
 
     /**
@@ -35,13 +28,13 @@ object ViewToImageUtils {
      */
     fun registerImageViewLoadParam(
         imageView: ImageView,
-        url: Any,
-        isRound: Boolean = false,
-        radius: Float? = null,
-        blurRadius: Int? = null,
-        sampling: Int? = null
+        model: Any?,
+        config: ImageLoadConfig = ImageLoadConfig()
     ) {
-        imageViewUrlMap[imageView] = ImageViewLoadParam(url, isRound, radius, blurRadius, sampling)
+        imageView.setTag(
+            R.id.avu_image_load_param,
+            ImageViewLoadParam(model, config)
+        )
     }
 
     /**
@@ -56,37 +49,38 @@ object ViewToImageUtils {
         onResult: (Boolean, String) -> Unit
     ) {
         lifecycleScope.launch {
+            var bitmap: Bitmap? = null
             try {
-                // 关键：先同步加载所有ImageView的图片
                 preloadAllImageViewImages(context, view)
-                // 生成Bitmap
-                val bitmap = createValidBitmapFromView(view)
-                if (bitmap.width <= 0 || bitmap.height <= 0) {
-                    onResult(false, "生成的Bitmap为空")
-                    return@launch
-                }
-                var savePath: String? = null
-                if (isSaveToInternal) {
-                    val saveResult = withContext(Dispatchers.IO) {
-                        BitmapSaveUtils.saveBitmapToInternalStorage(context, bitmap, fileName)
-                    }
-                    saveResult.onSuccess { file ->
-                        savePath = file.absolutePath
-                    }
+                bitmap = createValidBitmapFromView(view)
+
+                val saveResult = if (isSaveToInternal) {
+                    BitmapSaveUtils.saveBitmapToInternalStorage(
+                        context = context,
+                        bitmap = bitmap,
+                        fileName = fileName
+                    ).map { it.absolutePath }
                 } else {
-                    val saveResult = withContext(Dispatchers.IO) {
-                        BitmapSaveUtils.saveBitmapToMediaStore(context, bitmap, fileName)
-                    }
-                    saveResult.onSuccess { file ->
-                        savePath = file.path
-                    }
+                    BitmapSaveUtils.saveBitmapToMediaStore(
+                        context = context,
+                        bitmap = bitmap,
+                        fileName = fileName
+                    ).map { it.toString() }
                 }
-                // 清空缓存的参数
-                imageViewUrlMap.clear()
-                onResult(true, "$savePath")
+
+                saveResult.fold(
+                    onSuccess = { path -> onResult(true, path) },
+                    onFailure = { error ->
+                        onResult(false, "保存失败：${error.message ?: "未知错误"}")
+                    }
+                )
+            } catch (error: CancellationException) {
+                throw error
             } catch (e: Exception) {
-                imageViewUrlMap.clear()
                 onResult(false, "保存失败：${e.message ?: "未知错误"}")
+            } finally {
+                bitmap?.recycle()
+                clearRegisteredImageParams(view)
             }
         }
     }
@@ -99,26 +93,18 @@ object ViewToImageUtils {
         traverseViewSuspend(view) { childView ->
             if (childView is ImageView) {
                 val imageView = childView
-                // 获取注册的加载参数
-                val param = imageViewUrlMap[imageView] ?: return@traverseViewSuspend
+                val param = imageView.getTag(R.id.avu_image_load_param)
+                    as? ImageViewLoadParam ?: return@traverseViewSuspend
                 // 同步加载图片为Bitmap（使用新的配置类方式）
-                val bitmap = loadImageToBitmap(
+                val bitmap = loadImageToBitmapResult(
                     context = context,
-                    url = param.url,
-                    config = ImageLoadConfig(
-                        isRound = param.isRound,
-                        radius = param.radius?.toInt() ?: 0,
-                        blurRadius = param.blurRadius ?: 0,
-                        sampling = param.sampling ?: 1,
-                        showPlaceholder = true
-                    )
-                )
+                    model = param.model,
+                    config = param.config
+                ).getOrThrow()
 
                 // 手动设置Bitmap到ImageView（切回主线程）
-                bitmap?.let {
-                    withContext(Dispatchers.Main) {
-                        imageView.setImageBitmap(it)
-                    }
+                withContext(Dispatchers.Main) {
+                    imageView.setImageBitmap(bitmap)
                 }
             }
         }
@@ -140,6 +126,17 @@ object ViewToImageUtils {
                 val child = view.getChildAt(i)
                 // 子View也执行挂起动作
                 traverseViewSuspend(child, action)
+            }
+        }
+    }
+
+    private fun clearRegisteredImageParams(view: View) {
+        if (view is ImageView) {
+            view.setTag(R.id.avu_image_load_param, null)
+        }
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                clearRegisteredImageParams(view.getChildAt(index))
             }
         }
     }
@@ -203,7 +200,8 @@ object ViewToImageUtils {
             view.layout(0, 0, finalWidth, finalHeight)
         }
 
-        // 创建Bitmap（尺寸和布局一致）
+        require(finalWidth > 0 && finalHeight > 0) { "无法从尺寸为 ${finalWidth}x${finalHeight} 的 View 创建图片" }
+
         val bitmap = Bitmap.createBitmap(finalWidth, finalHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         view.draw(canvas)

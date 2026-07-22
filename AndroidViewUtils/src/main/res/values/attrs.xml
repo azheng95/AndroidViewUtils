@@ -2,129 +2,129 @@
 <resources>
 
     <!-- 自定义颜色Switch的属性 -->
-    <declare-styleable name="Switch">
+    <declare-styleable name="AvuSwitch">
         <!-- 开关开启时的轨道背景色 -->
-        <attr name="switchOnTrackColor" format="color" />
+        <attr name="avu_switchOnTrackColor" format="color" />
         <!-- 开关关闭时的轨道背景色 -->
-        <attr name="switchOffTrackColor" format="color" />
+        <attr name="avu_switchOffTrackColor" format="color" />
         <!-- 滑块（thumb）的颜色 -->
-        <attr name="switchThumbColor" format="color" />
+        <attr name="avu_switchThumbColor" format="color" />
         <!-- 滑块的大小（可选，适配UI尺寸） -->
-        <attr name="switchThumbSize" format="dimension" />
+        <attr name="avu_switchThumbSize" format="dimension" />
     </declare-styleable>
     <!--圆形加载视图-->
-    <declare-styleable name="CircleLoadingView">
+    <declare-styleable name="AvuCircleLoadingView">
         <!-- 环形宽度 -->
-        <attr name="CircleLoadingViewCircleStrokeWidth" format="dimension" />
+        <attr name="avu_circleLoadingStrokeWidth" format="dimension" />
         <!-- 进度环颜色 -->
-        <attr name="CircleLoadingViewProgressColor" format="color" />
+        <attr name="avu_circleLoadingProgressColor" format="color" />
         <!-- 背景环颜色 -->
-        <attr name="CircleLoadingViewBgCircleColor" format="color" />
+        <attr name="avu_circleLoadingBackgroundColor" format="color" />
         <!-- 动画总时长（毫秒） -->
-        <attr name="CircleLoadingViewAnimationDuration" format="integer" />
+        <attr name="avu_circleLoadingAnimationDuration" format="integer" />
         <!-- 目标进度（0-100） -->
-        <attr name="CircleLoadingViewTargetProgress" format="float" />
+        <attr name="avu_circleLoadingTargetProgress" format="float" />
         <!-- 背景环起始角度，默认270°（12点钟） -->
-        <attr name="CircleLoadingViewBgStartAngle" format="float" />
+        <attr name="avu_circleLoadingBackgroundStartAngle" format="float" />
         <!-- 背景环扫描角度，默认360°（整圆） -->
-        <attr name="CircleLoadingViewBgSweepAngle" format="float" />
+        <attr name="avu_circleLoadingBackgroundSweepAngle" format="float" />
         <!-- 进度环起始角度，默认270° -->
-        <attr name="CircleLoadingViewProgressStartAngle" format="float" />
+        <attr name="avu_circleLoadingProgressStartAngle" format="float" />
         <!-- 进度环总扫描角度，默认-360°（顺时针） -->
-        <attr name="CircleLoadingViewProgressSweepAngle" format="float" />
+        <attr name="avu_circleLoadingProgressSweepAngle" format="float" />
     </declare-styleable>
 
     <!--弧形进度条-->
-    <declare-styleable name="ArcProgressBar">
+    <declare-styleable name="AvuArcProgressBar">
         <!-- 圆弧底色 -->
-        <attr name="arc_bg_color" format="color" />
+        <attr name="avu_arcBackgroundColor" format="color" />
         <!-- 进度填充色（纯色时使用） -->
-        <attr name="arc_progress_color" format="color" />
+        <attr name="avu_arcProgressColor" format="color" />
         <!-- 进度值 -->
-        <attr name="arc_progress" format="float" />
+        <attr name="avu_arcProgress" format="float" />
         <!-- 最大进度值 -->
-        <attr name="arc_max_progress" format="float" />
+        <attr name="avu_arcMaxProgress" format="float" />
         <!-- 圆弧宽度 -->
-        <attr name="arc_stroke_width" format="dimension" />
+        <attr name="avu_arcStrokeWidth" format="dimension" />
         <!-- 圆弧起始角度（默认135度，对应左上方向） -->
-        <attr name="arc_start_angle" format="integer" />
+        <attr name="avu_arcStartAngle" format="integer" />
         <!-- 圆弧总扫过角度（默认270度，对应大半圆） -->
-        <attr name="arc_sweep_angle" format="integer" />
+        <attr name="avu_arcSweepAngle" format="integer" />
     </declare-styleable>
 
     <!-- 自定义虚线View的属性 -->
-    <declare-styleable name="DashedLineView">
+    <declare-styleable name="AvuDashedLineView">
         <!-- 虚线本身的粗细（核心：你需要自定义的宽度） -->
-        <attr name="dashedLineWidth" format="dimension" />
+        <attr name="avu_dashedLineWidth" format="dimension" />
         <!-- 虚线段的长度 -->
-        <attr name="dashedLineDashWidth" format="dimension" />
+        <attr name="avu_dashedLineDashWidth" format="dimension" />
         <!-- 虚线段之间的间隔 -->
-        <attr name="dashedLineDashGap" format="dimension" />
+        <attr name="avu_dashedLineDashGap" format="dimension" />
         <!-- 虚线颜色 -->
-        <attr name="dashedLineColor" format="color" />
+        <attr name="avu_dashedLineColor" format="color" />
         <!-- 虚线方向：horizontal/vertical -->
-        <attr name="dashedLineOrientation" format="enum">
-            <enum name="horizontal" value="0" />
-            <enum name="vertical" value="1" />
+        <attr name="avu_dashedLineOrientation" format="enum">
+            <enum name="avu_horizontal" value="0" />
+            <enum name="avu_vertical" value="1" />
         </attr>
     </declare-styleable>
 
-    <declare-styleable name="DiamondProgressBar">
+    <declare-styleable name="AvuDiamondProgressBar">
         <!-- 基础属性 -->
-        <attr name="dpb_progress" format="float" />
-        <attr name="dpb_maxProgress" format="float" />
-        <attr name="dpb_barHeight" format="dimension" />
-        <attr name="dpb_trackColor" format="color" />
+        <attr name="avu_dpb_progress" format="float" />
+        <attr name="avu_dpb_maxProgress" format="float" />
+        <attr name="avu_dpb_barHeight" format="dimension" />
+        <attr name="avu_dpb_trackColor" format="color" />
 
         <!-- 弧形属性 -->
-        <attr name="dpb_arcMode" format="boolean" />
-        <attr name="dpb_arcHeight" format="dimension" />
-        <attr name="dpb_arcControlPosition" format="float" />
-        <attr name="dpb_arcType" format="enum">
+        <attr name="avu_dpb_arcMode" format="boolean" />
+        <attr name="avu_dpb_arcHeight" format="dimension" />
+        <attr name="avu_dpb_arcControlPosition" format="float" />
+        <attr name="avu_dpb_arcType" format="enum">
             <!--二次贝塞尔曲线，单控制点，简单弧形-->
-            <enum name="quadratic" value="0" />
+            <enum name="avu_quadratic" value="0" />
             <!--三次贝塞尔曲线，双控制点，更平滑自然-->
-            <enum name="cubic" value="1" />
+            <enum name="avu_cubic" value="1" />
             <!--真正的圆弧，数学意义上的弧线-->
-            <enum name="arc" value="2" />
+            <enum name="avu_arc" value="2" />
         </attr>
-        <attr name="dpb_arcControlHeight1" format="float" />
-        <attr name="dpb_arcControlHeight2" format="float" />
-        <attr name="dpb_diamondRotate" format="boolean" />
+        <attr name="avu_dpb_arcControlHeight1" format="float" />
+        <attr name="avu_dpb_arcControlHeight2" format="float" />
+        <attr name="avu_dpb_diamondRotate" format="boolean" />
 
         <!-- 圆角属性 -->
-        <attr name="dpb_cornerRadius" format="dimension" />
-        <attr name="dpb_topLeftRadius" format="dimension" />
-        <attr name="dpb_topRightRadius" format="dimension" />
-        <attr name="dpb_bottomLeftRadius" format="dimension" />
-        <attr name="dpb_bottomRightRadius" format="dimension" />
-        <attr name="dpb_progressStartRadius" format="dimension" />
-        <attr name="dpb_progressEndRadius" format="dimension" />
+        <attr name="avu_dpb_cornerRadius" format="dimension" />
+        <attr name="avu_dpb_topLeftRadius" format="dimension" />
+        <attr name="avu_dpb_topRightRadius" format="dimension" />
+        <attr name="avu_dpb_bottomLeftRadius" format="dimension" />
+        <attr name="avu_dpb_bottomRightRadius" format="dimension" />
+        <attr name="avu_dpb_progressStartRadius" format="dimension" />
+        <attr name="avu_dpb_progressEndRadius" format="dimension" />
         <!--是否为胶囊形状（圆角=高度/2）-->
-        <attr name="dpb_capsuleShape" format="boolean" />
+        <attr name="avu_dpb_capsuleShape" format="boolean" />
 
         <!-- 渐变色属性 -->
-        <attr name="dpb_gradientStartColor" format="color" />
-        <attr name="dpb_gradientCenterColor" format="color" />
-        <attr name="dpb_gradientEndColor" format="color" />
+        <attr name="avu_dpb_gradientStartColor" format="color" />
+        <attr name="avu_dpb_gradientCenterColor" format="color" />
+        <attr name="avu_dpb_gradientEndColor" format="color" />
 
         <!-- 钻石图标属性 -->
-        <attr name="dpb_diamondDrawable" format="reference" />
-        <attr name="dpb_diamondSize" format="dimension" />
-        <attr name="dpb_diamondOffsetY" format="dimension" />
-        <attr name="dpb_diamondWidth" format="dimension" />
-        <attr name="dpb_diamondHeight" format="dimension" />
+        <attr name="avu_dpb_diamondDrawable" format="reference" />
+        <attr name="avu_dpb_diamondSize" format="dimension" />
+        <attr name="avu_dpb_diamondOffsetY" format="dimension" />
+        <attr name="avu_dpb_diamondWidth" format="dimension" />
+        <attr name="avu_dpb_diamondHeight" format="dimension" />
         <!--线条端点样式-->
-        <attr name="dpb_strokeCap" format="enum">
-            <enum name="butt" value="0" />
-            <enum name="round" value="1" />
-            <enum name="square" value="2" />
+        <attr name="avu_dpb_strokeCap" format="enum">
+            <enum name="avu_butt" value="0" />
+            <enum name="avu_round" value="1" />
+            <enum name="avu_square" value="2" />
         </attr>
         <!-- 在 DiamondProgressBar 的 declare-styleable 中添加 -->
-        <attr name="dpb_diamondTiltEnabled" format="boolean" />
-        <attr name="dpb_diamondTiltAngle" format="float" />
-        <attr name="dpb_diamondTiltSmooth" format="boolean" />
-        <attr name="dpb_diamondTiltDuration" format="integer" />
+        <attr name="avu_dpb_diamondTiltEnabled" format="boolean" />
+        <attr name="avu_dpb_diamondTiltAngle" format="float" />
+        <attr name="avu_dpb_diamondTiltSmooth" format="boolean" />
+        <attr name="avu_dpb_diamondTiltDuration" format="integer" />
 
     </declare-styleable>
 

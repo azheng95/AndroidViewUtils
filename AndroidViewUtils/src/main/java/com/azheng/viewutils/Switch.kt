@@ -1,18 +1,20 @@
 package com.azheng.viewutils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
 import android.view.ViewGroup
-import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
 
+@SuppressLint("CustomViewStyleable")
 class Switch @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = android.R.attr.switchStyle
-) : Switch(context, attrs, defStyleAttr) {
+    defStyleAttr: Int = androidx.appcompat.R.attr.switchStyle
+) : SwitchCompat(context, attrs, defStyleAttr) {
 
     // 默认颜色（匹配你UI图的浅灰+白色样式）
     private val DEFAULT_ON_TRACK_COLOR = Color.parseColor("#4CAF50")   // 开启时轨道色（绿色）
@@ -23,23 +25,23 @@ class Switch @JvmOverloads constructor(
     init {
         // 解析XML中设置的自定义属性
         attrs?.let {
-            val typedArray = context.obtainStyledAttributes(it, R.styleable.Switch)
+            val typedArray = context.obtainStyledAttributes(it, R.styleable.AvuSwitch)
             
             // 读取自定义颜色属性
             val onTrackColor = typedArray.getColor(
-                R.styleable.Switch_switchOnTrackColor,
+                R.styleable.AvuSwitch_avu_switchOnTrackColor,
                 DEFAULT_ON_TRACK_COLOR
             )
             val offTrackColor = typedArray.getColor(
-                R.styleable.Switch_switchOffTrackColor,
+                R.styleable.AvuSwitch_avu_switchOffTrackColor,
                 DEFAULT_OFF_TRACK_COLOR
             )
             val thumbColor = typedArray.getColor(
-                R.styleable.Switch_switchThumbColor,
+                R.styleable.AvuSwitch_avu_switchThumbColor,
                 DEFAULT_THUMB_COLOR
             )
             val thumbSize = typedArray.getDimension(
-                R.styleable.Switch_switchThumbSize,
+                R.styleable.AvuSwitch_avu_switchThumbSize,
                 DEFAULT_THUMB_SIZE
             )
 

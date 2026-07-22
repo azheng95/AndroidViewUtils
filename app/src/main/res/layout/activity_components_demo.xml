@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/white"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="@string/components_demo_title" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/components_arc_title"
+                android:textColor="#202124"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <com.azheng.viewutils.ArcProgressBar
+                android:id="@+id/arcProgress"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                app:avu_arcBackgroundColor="#E5E7EB"
+                app:avu_arcProgressColor="#2563EB"
+                app:avu_arcProgress="72"
+                app:avu_arcMaxProgress="100"
+                app:avu_arcStartAngle="135"
+                app:avu_arcSweepAngle="270"
+                app:avu_arcStrokeWidth="18dp" />
+
+            <SeekBar
+                android:id="@+id/seekArcProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="72" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonArcAnimate"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/components_animate_progress" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/components_circle_title"
+                android:textColor="#202124"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <com.azheng.viewutils.CircleLoadingView
+                android:id="@+id/circleLoading"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                app:avu_circleLoadingAnimationDuration="1800"
+                app:avu_circleLoadingBackgroundColor="#DBEAFE"
+                app:avu_circleLoadingProgressColor="#2563EB"
+                app:avu_circleLoadingTargetProgress="100"
+                app:avu_circleLoadingStrokeWidth="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonCircleStart"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/components_start" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonCircleStop"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/components_stop" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/components_diamond_title"
+                android:textColor="#202124"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <com.azheng.viewutils.DiamondProgressBar
+                android:id="@+id/diamondProgress"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:layout_marginTop="8dp"
+                app:avu_dpb_barHeight="10dp"
+                app:avu_dpb_capsuleShape="true"
+                app:avu_dpb_progress="64"
+                app:avu_dpb_trackColor="#E5E7EB" />
+
+            <com.azheng.viewutils.DiamondProgressBar
+                android:id="@+id/diamondArcProgress"
+                android:layout_width="match_parent"
+                android:layout_height="92dp"
+                app:avu_dpb_arcMode="true"
+                app:avu_dpb_arcHeight="24dp"
+                app:avu_dpb_progress="42"
+                app:avu_dpb_trackColor="#E5E7EB" />
+
+            <SeekBar
+                android:id="@+id/seekDiamondProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="64" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/components_line_title"
+                android:textColor="#202124"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <com.azheng.viewutils.DashedLineView
+                android:id="@+id/dashedHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginTop="8dp"
+                app:avu_dashedLineColor="#2563EB"
+                app:avu_dashedLineDashGap="6dp"
+                app:avu_dashedLineDashWidth="10dp"
+                app:avu_dashedLineWidth="2dp"
+                app:avu_dashedLineOrientation="avu_horizontal" />
+
+            <com.azheng.viewutils.DashedLineView
+                android:id="@+id/dashedVertical"
+                android:layout_width="20dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                app:avu_dashedLineColor="#F59E0B"
+                app:avu_dashedLineDashGap="6dp"
+                app:avu_dashedLineDashWidth="10dp"
+                app:avu_dashedLineWidth="2dp"
+                app:avu_dashedLineOrientation="avu_vertical" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/components_misc_title"
+                android:textColor="#202124"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.azheng.viewutils.Switch
+                    android:id="@+id/demoSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:avu_switchOffTrackColor="#CBD5E1"
+                    app:avu_switchOnTrackColor="#10B981"
+                    app:avu_switchThumbColor="#FFFFFF" />
+
+                <TextView
+                    android:id="@+id/switchState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/components_switch_off"
+                    android:textColor="#4B5563"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <com.azheng.viewutils.ImageViewGrid
+                android:layout_width="96dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="16dp"
+                android:contentDescription="@string/components_grid_image"
+                android:src="@drawable/avu_image_placeholder"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                android:text="@string/components_grid_caption"
+                android:textColor="#4B5563"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

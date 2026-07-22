@@ -3,8 +3,8 @@
 
 
 
-    <color name="CircleLoadingViewBgCircleColor">#FBE7D2</color>
-    <color name="CircleLoadingViewProgressColor">#A47414</color>
+    <color name="avu_circle_loading_background">#FBE7D2</color>
+    <color name="avu_circle_loading_progress">#A47414</color>
 
 
 </resources>

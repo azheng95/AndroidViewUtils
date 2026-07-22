@@ -2,6 +2,7 @@ package com.azheng.viewutils
 
 import android.animation.Animator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -11,6 +12,7 @@ import android.view.animation.DecelerateInterpolator
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 
+@SuppressLint("CustomViewStyleable")
 class DiamondProgressBar @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -21,7 +23,7 @@ class DiamondProgressBar @JvmOverloads constructor(
     var progress: Float = 0f
         set(value) {
             val oldValue = field
-            field = value.coerceIn(0f, maxProgress)
+            field = value.takeIf { it.isFinite() }?.coerceIn(0f, maxProgress) ?: 0f
 
             // 计算倾斜效果
             if (diamondTiltEnabled && oldValue != field) {
@@ -33,15 +35,17 @@ class DiamondProgressBar @JvmOverloads constructor(
 
     var maxProgress: Float = 100f
         set(value) {
-            field = value
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(1f) ?: 100f
+            if (progress > field) progress = field
             invalidate()
         }
 
     var barHeight: Float = dpToPx(8f)
         set(value) {
-            field = value
-            trackPaint.strokeWidth = value
-            progressPaint.strokeWidth = value
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            trackPaint.strokeWidth = field
+            progressPaint.strokeWidth = field
+            requestLayout()
             invalidate()
         }
 
@@ -54,7 +58,8 @@ class DiamondProgressBar @JvmOverloads constructor(
 
     var arcHeight: Float = dpToPx(30f)
         set(value) {
-            field = value
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            requestLayout()
             invalidate()
         }
 
@@ -109,12 +114,40 @@ class DiamondProgressBar @JvmOverloads constructor(
         }
 
     var topLeftRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            updateCornerRadiiInternal()
+            invalidate()
+        }
     var topRightRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            updateCornerRadiiInternal()
+            invalidate()
+        }
     var bottomLeftRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            updateCornerRadiiInternal()
+            invalidate()
+        }
     var bottomRightRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            updateCornerRadiiInternal()
+            invalidate()
+        }
 
     var progressStartRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            invalidate()
+        }
     var progressEndRadius: Float = dpToPx(4f)
+        set(value) {
+            field = value.takeIf { it.isFinite() }?.coerceAtLeast(0f) ?: 0f
+            invalidate()
+        }
 
     var isCapsuleShape: Boolean = false
         set(value) {
@@ -136,15 +169,19 @@ class DiamondProgressBar @JvmOverloads constructor(
         Color.parseColor("#FFE66D"),
         Color.parseColor("#4ECDC4")
     )
+        get() = field.copyOf()
         set(value) {
-            field = value
+            validateGradient(value, gradientPositions)
+            field = value.copyOf()
             updateGradient()
             invalidate()
         }
 
     var gradientPositions: FloatArray? = null
+        get() = field?.copyOf()
         set(value) {
-            field = value
+            validateGradient(gradientColors, value)
+            field = value?.copyOf()
             updateGradient()
             invalidate()
         }
@@ -319,38 +356,38 @@ class DiamondProgressBar @JvmOverloads constructor(
         updateCornerRadii()
 
         attrs?.let {
-            val typedArray = context.obtainStyledAttributes(it, R.styleable.DiamondProgressBar)
-            progress = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_progress, 0f)
-            maxProgress = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_maxProgress, 100f)
-            barHeight = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_barHeight, dpToPx(8f))
+            val typedArray = context.obtainStyledAttributes(it, R.styleable.AvuDiamondProgressBar)
+            progress = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_progress, 0f)
+            maxProgress = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_maxProgress, 100f)
+            barHeight = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_barHeight, dpToPx(8f))
             trackColor = typedArray.getColor(
-                R.styleable.DiamondProgressBar_dpb_trackColor,
+                R.styleable.AvuDiamondProgressBar_avu_dpb_trackColor,
                 Color.parseColor("#E0E0E0")
             )
 
             // 钻石尺寸读取（支持单独宽高和统一size）
-            val defaultSize = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_diamondSize, 0f)
-            diamondWidth = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_diamondWidth, defaultSize)
-            diamondHeight = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_diamondHeight, defaultSize)
+            val defaultSize = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondSize, 0f)
+            diamondWidth = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondWidth, defaultSize)
+            diamondHeight = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondHeight, defaultSize)
 
-            diamondOffsetY = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_diamondOffsetY, 0f)
+            diamondOffsetY = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondOffsetY, 0f)
 
-            isArcMode = typedArray.getBoolean(R.styleable.DiamondProgressBar_dpb_arcMode, false)
-            arcHeight = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_arcHeight, dpToPx(30f))
-            arcControlPosition = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_arcControlPosition, 0.5f)
-            val arcTypeInt = typedArray.getInt(R.styleable.DiamondProgressBar_dpb_arcType, 0)
+            isArcMode = typedArray.getBoolean(R.styleable.AvuDiamondProgressBar_avu_dpb_arcMode, false)
+            arcHeight = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_arcHeight, dpToPx(30f))
+            arcControlPosition = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_arcControlPosition, 0.5f)
+            val arcTypeInt = typedArray.getInt(R.styleable.AvuDiamondProgressBar_avu_dpb_arcType, 0)
             arcType = ArcType.values()[arcTypeInt]
-            arcControlHeight1 = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_arcControlHeight1, 1f)
-            arcControlHeight2 = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_arcControlHeight2, 1f)
-            diamondRotateWithPath = typedArray.getBoolean(R.styleable.DiamondProgressBar_dpb_diamondRotate, false)
+            arcControlHeight1 = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_arcControlHeight1, 1f)
+            arcControlHeight2 = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_arcControlHeight2, 1f)
+            diamondRotateWithPath = typedArray.getBoolean(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondRotate, false)
 
             // 倾斜属性读取
-            diamondTiltEnabled = typedArray.getBoolean(R.styleable.DiamondProgressBar_dpb_diamondTiltEnabled, false)
-            diamondTiltAngle = typedArray.getFloat(R.styleable.DiamondProgressBar_dpb_diamondTiltAngle, 15f)
-            diamondTiltSmooth = typedArray.getBoolean(R.styleable.DiamondProgressBar_dpb_diamondTiltSmooth, true)
-            diamondTiltDuration = typedArray.getInt(R.styleable.DiamondProgressBar_dpb_diamondTiltDuration, 150).toLong()
+            diamondTiltEnabled = typedArray.getBoolean(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondTiltEnabled, false)
+            diamondTiltAngle = typedArray.getFloat(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondTiltAngle, 15f)
+            diamondTiltSmooth = typedArray.getBoolean(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondTiltSmooth, true)
+            diamondTiltDuration = typedArray.getInt(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondTiltDuration, 150).toLong()
 
-            val strokeCapInt = typedArray.getInt(R.styleable.DiamondProgressBar_dpb_strokeCap, 1)
+            val strokeCapInt = typedArray.getInt(R.styleable.AvuDiamondProgressBar_avu_dpb_strokeCap, 1)
             strokeCap = when (strokeCapInt) {
                 0 -> Paint.Cap.BUTT
                 1 -> Paint.Cap.ROUND
@@ -359,23 +396,23 @@ class DiamondProgressBar @JvmOverloads constructor(
             }
 
             val defaultRadius = dpToPx(4f)
-            barCornerRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_cornerRadius, defaultRadius)
-            topLeftRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_topLeftRadius, barCornerRadius)
-            topRightRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_topRightRadius, barCornerRadius)
-            bottomLeftRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_bottomLeftRadius, barCornerRadius)
-            bottomRightRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_bottomRightRadius, barCornerRadius)
-            progressStartRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_progressStartRadius, barCornerRadius)
-            progressEndRadius = typedArray.getDimension(R.styleable.DiamondProgressBar_dpb_progressEndRadius, barCornerRadius)
-            isCapsuleShape = typedArray.getBoolean(R.styleable.DiamondProgressBar_dpb_capsuleShape, false)
+            barCornerRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_cornerRadius, defaultRadius)
+            topLeftRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_topLeftRadius, barCornerRadius)
+            topRightRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_topRightRadius, barCornerRadius)
+            bottomLeftRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_bottomLeftRadius, barCornerRadius)
+            bottomRightRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_bottomRightRadius, barCornerRadius)
+            progressStartRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_progressStartRadius, barCornerRadius)
+            progressEndRadius = typedArray.getDimension(R.styleable.AvuDiamondProgressBar_avu_dpb_progressEndRadius, barCornerRadius)
+            isCapsuleShape = typedArray.getBoolean(R.styleable.AvuDiamondProgressBar_avu_dpb_capsuleShape, false)
 
-            val diamondResId = typedArray.getResourceId(R.styleable.DiamondProgressBar_dpb_diamondDrawable, 0)
+            val diamondResId = typedArray.getResourceId(R.styleable.AvuDiamondProgressBar_avu_dpb_diamondDrawable, 0)
             if (diamondResId != 0) {
                 diamondDrawable = ContextCompat.getDrawable(context.applicationContext, diamondResId)
             }
 
-            val startColor = typedArray.getColor(R.styleable.DiamondProgressBar_dpb_gradientStartColor, Color.parseColor("#FF6B6B"))
-            val centerColor = typedArray.getColor(R.styleable.DiamondProgressBar_dpb_gradientCenterColor, Color.parseColor("#FFE66D"))
-            val endColor = typedArray.getColor(R.styleable.DiamondProgressBar_dpb_gradientEndColor, Color.parseColor("#4ECDC4"))
+            val startColor = typedArray.getColor(R.styleable.AvuDiamondProgressBar_avu_dpb_gradientStartColor, Color.parseColor("#FF6B6B"))
+            val centerColor = typedArray.getColor(R.styleable.AvuDiamondProgressBar_avu_dpb_gradientCenterColor, Color.parseColor("#FFE66D"))
+            val endColor = typedArray.getColor(R.styleable.AvuDiamondProgressBar_avu_dpb_gradientEndColor, Color.parseColor("#4ECDC4"))
             gradientColors = intArrayOf(startColor, centerColor, endColor)
 
             typedArray.recycle()
@@ -1021,106 +1058,125 @@ class DiamondProgressBar @JvmOverloads constructor(
 
     // ============ 保留原有的即时生效方法（向后兼容） ============
 
+    @JvmName("setProgressFluent")
     fun setProgress(progressValue: Float): DiamondProgressBar {
         this.progress = progressValue
         return this
     }
 
+    @JvmName("setMaxProgressFluent")
     fun setMaxProgress(maxProgressValue: Float): DiamondProgressBar {
         this.maxProgress = maxProgressValue
         return this
     }
 
+    @JvmName("setBarHeightFluent")
     fun setBarHeight(barHeightValue: Float): DiamondProgressBar {
         this.barHeight = barHeightValue
         return this
     }
 
+    @JvmName("setArcModeFluent")
     fun setArcMode(isArcModeValue: Boolean): DiamondProgressBar {
         this.isArcMode = isArcModeValue
         return this
     }
 
+    @JvmName("setArcHeightFluent")
     fun setArcHeight(arcHeightValue: Float): DiamondProgressBar {
         this.arcHeight = arcHeightValue
         return this
     }
 
+    @JvmName("setArcControlPositionFluent")
     fun setArcControlPosition(arcControlPositionValue: Float): DiamondProgressBar {
         this.arcControlPosition = arcControlPositionValue
         return this
     }
 
+    @JvmName("setArcTypeFluent")
     fun setArcType(arcTypeValue: ArcType): DiamondProgressBar {
         this.arcType = arcTypeValue
         return this
     }
 
+    @JvmName("setArcControlHeight1Fluent")
     fun setArcControlHeight1(arcControlHeight1Value: Float): DiamondProgressBar {
         this.arcControlHeight1 = arcControlHeight1Value
         return this
     }
 
+    @JvmName("setArcControlHeight2Fluent")
     fun setArcControlHeight2(arcControlHeight2Value: Float): DiamondProgressBar {
         this.arcControlHeight2 = arcControlHeight2Value
         return this
     }
 
+    @JvmName("setStrokeCapFluent")
     fun setStrokeCap(strokeCapValue: Paint.Cap): DiamondProgressBar {
         this.strokeCap = strokeCapValue
         return this
     }
 
+    @JvmName("setBarCornerRadiusFluent")
     fun setBarCornerRadius(barCornerRadiusValue: Float): DiamondProgressBar {
         this.barCornerRadius = barCornerRadiusValue
         return this
     }
 
+    @JvmName("setTopLeftRadiusFluent")
     fun setTopLeftRadius(topLeftRadiusValue: Float): DiamondProgressBar {
-        this.topLeftRadius = topLeftRadiusValue
+        this.topLeftRadius = topLeftRadiusValue.coerceAtLeast(0f)
         updateCornerRadiiInternal()
         invalidate()
         return this
     }
 
+    @JvmName("setTopRightRadiusFluent")
     fun setTopRightRadius(topRightRadiusValue: Float): DiamondProgressBar {
-        this.topRightRadius = topRightRadiusValue
+        this.topRightRadius = topRightRadiusValue.coerceAtLeast(0f)
         updateCornerRadiiInternal()
         invalidate()
         return this
     }
 
+    @JvmName("setBottomLeftRadiusFluent")
     fun setBottomLeftRadius(bottomLeftRadiusValue: Float): DiamondProgressBar {
-        this.bottomLeftRadius = bottomLeftRadiusValue
+        this.bottomLeftRadius = bottomLeftRadiusValue.coerceAtLeast(0f)
         updateCornerRadiiInternal()
         invalidate()
         return this
     }
 
+    @JvmName("setBottomRightRadiusFluent")
     fun setBottomRightRadius(bottomRightRadiusValue: Float): DiamondProgressBar {
-        this.bottomRightRadius = bottomRightRadiusValue
+        this.bottomRightRadius = bottomRightRadiusValue.coerceAtLeast(0f)
         updateCornerRadiiInternal()
         invalidate()
         return this
     }
 
+    @JvmName("setProgressStartRadiusFluent")
     fun setProgressStartRadius(progressStartRadiusValue: Float): DiamondProgressBar {
-        this.progressStartRadius = progressStartRadiusValue
+        this.progressStartRadius = progressStartRadiusValue.coerceAtLeast(0f)
         invalidate()
         return this
     }
 
+    @JvmName("setProgressEndRadiusFluent")
     fun setProgressEndRadius(progressEndRadiusValue: Float): DiamondProgressBar {
-        this.progressEndRadius = progressEndRadiusValue
+        this.progressEndRadius = progressEndRadiusValue.coerceAtLeast(0f)
         invalidate()
         return this
     }
 
+    @JvmName("setCapsuleShapeFluent")
     fun setCapsuleShape(isCapsuleShapeValue: Boolean): DiamondProgressBar {
         this.isCapsuleShape = isCapsuleShapeValue
         return this
     }
 
+    @JvmName("setTrackColorFluent")
     fun setTrackColor(trackColorValue: Int): DiamondProgressBar {
         this.trackColor = trackColorValue
         return this
@@ -1132,16 +1188,19 @@ class DiamondProgressBar @JvmOverloads constructor(
         return this
     }
 
+    @JvmName("setDiamondWidthFluent")
     fun setDiamondWidth(width: Float): DiamondProgressBar {
         this.diamondWidth = width
         return this
     }
 
+    @JvmName("setDiamondHeightFluent")
     fun setDiamondHeight(height: Float): DiamondProgressBar {
         this.diamondHeight = height
         return this
     }
 
+    @JvmName("setDiamondSizeFluent")
     fun setDiamondSize(diamondSizeValue: Float): DiamondProgressBar {
         this.diamondSize = diamondSizeValue
         return this
@@ -1153,32 +1212,38 @@ class DiamondProgressBar @JvmOverloads constructor(
         return this
     }
 
+    @JvmName("setDiamondOffsetYFluent")
     fun setDiamondOffsetY(diamondOffsetYValue: Float): DiamondProgressBar {
         this.diamondOffsetY = diamondOffsetYValue
         return this
     }
 
+    @JvmName("setDiamondRotateWithPathFluent")
     fun setDiamondRotateWithPath(diamondRotateWithPathValue: Boolean): DiamondProgressBar {
         this.diamondRotateWithPath = diamondRotateWithPathValue
         return this
     }
 
     /** 倾斜即时生效方法 */
+    @JvmName("setDiamondTiltEnabledFluent")
     fun setDiamondTiltEnabled(enabled: Boolean): DiamondProgressBar {
         this.diamondTiltEnabled = enabled
         return this
     }
 
+    @JvmName("setDiamondTiltAngleFluent")
     fun setDiamondTiltAngle(angle: Float): DiamondProgressBar {
         this.diamondTiltAngle = angle
         return this
     }
 
+    @JvmName("setDiamondTiltSmoothFluent")
     fun setDiamondTiltSmooth(smooth: Boolean): DiamondProgressBar {
         this.diamondTiltSmooth = smooth
         return this
     }
 
+    @JvmName("setDiamondTiltDurationFluent")
     fun setDiamondTiltDuration(duration: Long): DiamondProgressBar {
         this.diamondTiltDuration = duration
         return this
@@ -1270,9 +1335,11 @@ class DiamondProgressBar @JvmOverloads constructor(
 
     // ============ 动画方法 ============
     fun setProgressWithAnimation(targetProgress: Float, duration: Long = 1000L): DiamondProgressBar {
+        require(duration >= 0L) { "duration 不能小于 0" }
         mProgressAnimator?.cancel()
 
-        mProgressAnimator = ValueAnimator.ofFloat(progress, targetProgress).apply {
+        val target = targetProgress.takeIf { it.isFinite() }?.coerceIn(0f, maxProgress) ?: 0f
+        mProgressAnimator = ValueAnimator.ofFloat(progress, target).apply {
             this.duration = duration
             interpolator = DecelerateInterpolator()
             addUpdateListener { animator ->
@@ -1322,9 +1389,16 @@ class DiamondProgressBar @JvmOverloads constructor(
 
     // ============ 内部工具方法 ============
     private fun updateGradient() {
+        validateGradient(gradientColors, gradientPositions)
         if (width > 0) {
             val diamondHSpace = getDiamondHorizontalSpace()
             val effectiveWidth = width - paddingLeft - paddingRight - diamondHSpace
+            if (effectiveWidth <= 0f) {
+                gradientShader = null
+                progressPaint.shader = null
+                progressFillPaint.shader = null
+                return
+            }
             gradientShader = LinearGradient(
                 paddingLeft + diamondHSpace / 2,
                 0f,
@@ -1336,6 +1410,19 @@ class DiamondProgressBar @JvmOverloads constructor(
             )
             progressPaint.shader = gradientShader
             progressFillPaint.shader = gradientShader
+        }
+    }
+
+    private fun validateGradient(colors: IntArray, positions: FloatArray?) {
+        require(colors.size >= 2) { "渐变色至少需要 2 个颜色" }
+        require(positions == null || positions.size == colors.size) {
+            "positions 数量必须与 colors 一致"
+        }
+        require(positions == null || positions.all { it.isFinite() && it in 0f..1f }) {
+            "positions 必须是 0..1 之间的有限值"
+        }
+        require(positions == null || positions.asList().zipWithNext().all { (a, b) -> a <= b }) {
+            "positions 必须按升序排列"
         }
     }
 
